@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<div id="container"></div>
+<div id="plot-container"></div>
+<div id="table-container">
+  <table><thead><tr><th>ID</th><th>From</th><th>To</th><th>Percent</th><th>People</th><th>Take</th></tr></thead><tbody></tbody></table>
+</div>
+
+<script type="module">
+
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+const datasetFile = "./data/wage.csv";
+const datasetPre = await d3.csv(datasetFile, row => ({
+  range: row.range,
+  count: +row.count,
+  take: +row.take
+}));
+
+const dataset = datasetPre.map(d => {
+      const [min, max] = d.range.replace(/\$/g, '').split('-').map(v => parseFloat(v.replace(/,/g, '').trim()));
+      return { ...d, from: min/1000, to: max/1000 };
+    });
+
+// Create an SVG container
+const width = 800;
+const height = 400;
+const margin = 50;
+
+const handleWidth = 12;
+
+const svg = d3
+  .select("#plot-container")
+  .append("svg")
+  .attr("width", width + margin * 2)
+  .attr("height", height + margin * 2)
+  .append("g")
+  .attr("transform", `translate(${margin}, ${margin})`);
+
+
+// Create scales for the chart
+const xScale = d3.scaleLinear().domain([0, d3.max(dataset, d => d.to)]).range([0, width]);
+const yScaleRate = d3.scaleLinear().domain([0, 100]).range([height, 0]);
+const yScaleCount = d3.scaleLinear().domain([0, d3.max(dataset, d => d.count)]).range([height, 0]);
+
+// Add axes
+svg.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale));
+svg.append("g").attr("class", "y-axis").call(d3.axisLeft(yScaleRate));
+svg.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(yScaleCount));
+
+// Plot data
+svg.selectAll(".bar")
+            .data(dataset)
+            .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("x", d => xScale(d.from))
+            .attr("y", d => yScaleCount(d.count/(d.to-d.from)))
+            .attr("width", d => xScale(d.to-d.from))
+            .attr("height", d => height - yScaleCount(d.count/(d.to-d.from)))
+            .attr("fill", "red");
+
+
+
+
+// Define initial rectangles
+const brackets = [
+  { id: 0, top: 15.6, percent: 10.5 },
+  { id: 1, top: 53.5, percent: 17.5 },
+  { id: 2, top: 78.1, percent: 30 },
+  { id: 3, top: 180, percent: 33 },
+  { id: 4, top: 999999999, percent: 39 }
+];
+
+function getFrom(i) {
+
+}
+function getTo(i) {
+
+}
+
+function drawTable() {
+  // Create a table to display rectangle dimensions
+
+// Append table if it doesn't exist
+  const container = d3.select("#table-container");
+
+  // Update rows in tbody
+  const rowsUpdate = container.select("tbody").selectAll("tr").data(brackets);
+
+  // Enter new rows
+  const rowsEnter = rowsUpdate.enter().append("tr");
+
+  rowsEnter.selectAll("td")
+  .data((d,i) => [d.id, (d.id < 1) ? "$0" : "$" + brackets[d.id-1].top + "K", (d.id == brackets.length -1) ? "--" : "$" + d.top + "K", d.percent, dataset.filter(e => (
+    (e.from >= (d.id == 0 ? 0 : brackets[d.id-1].top)+1))).reduce((a,b)=>a+b.count, 0),
+  "$" + (dataset.filter(e => (
+    (+e.from > (d.id == 0 ? 0 : +brackets[d.id-1].top))))
+    .reduce((a,b)=>a+ (b.count * ((+d.percent/100) * Math.min(+b.to, +d.top)) / 1000000), 0)
+          // TODO assumes people in top of range.
+     ).toFixed(2)+"B"]) 
+    .enter()
+    .append("td")
+    .text(d => d);
+
+  // Update existing rows
+  rowsUpdate.selectAll("td")
+  .data((d,i) => [d.id, (d.id < 1) ? "$0" : "$" + brackets[d.id-1].top + "K", (d.id == brackets.length -1) ? "--" : "$" + d.top + "K", d.percent, dataset.filter(e => (
+    (e.from >= (d.id == 0 ? 0 : brackets[d.id-1].top)+1))).reduce((a,b)=>a+b.count, 0),
+  "$" + (dataset.filter(e => (
+    (+e.from > (d.id == 0 ? 0 : +brackets[d.id-1].top))))
+    .reduce((a,b)=>a+ (b.count * ((+d.percent/100) * Math.min(+b.to, +d.top)) / 1000000), 0)
+          // TODO assumes people in top of range.
+     ).toFixed(2)+"B"])
+    .text(d => (d));
+
+// Remove old rows
+  rowsUpdate.exit().remove();
+
+  //.on("change", function (event, d) {
+  //   const newXRight = +event.target.value;
+  //   const diff = newXRight - (d.x + d.width);
+  //   d.width += diff;
+
+  //   // Update linked rectangle
+  //   const nextRect = brackets[brackets.indexOf(d) + 1];
+  //   if (nextRect) {
+  //     nextRect.x += diff;
+  //     nextRect.width -= diff;
+  //   }
+  // });
+}
+
+
+// Add drag behaviors
+const dragUp = d3.drag()
+  .on("drag", function (event, d) {
+    brackets.find(e => e.id == d.id).percent = Math.min(100, Math.max(yScaleRate.invert(event.y), -100)).toFixed(2);
+    drawBracket();
+    drawTable();
+  });
+
+const dragRight = d3.drag()
+.on("drag", function (event, d) {
+    brackets.find(e => e.id == d.id).top = Math.max(xScale.invert(event.x), (d.id < 1) ? 0 : brackets[d.id-1].top+1).toFixed(2);
+    console.log(brackets.find(e => e.id == d.id).top)
+    drawBracket();
+    drawTable();
+});
+
+function drawBracket(){
+  // Draw rectangles
+  const rectGroupUpdate = svg.selectAll(".rect-group")
+    .data(brackets)
+
+  const rectGroupEnter = rectGroupUpdate.enter()
+    .append("g")
+    .attr("class", "rect-group");
+
+  const rectGroupMerged = rectGroupEnter
+    .append("rect")
+    .attr("fill", "none")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
+    .merge(rectGroupUpdate.select("rect"))
+
+  rectGroupMerged
+    .attr("x", (d, i) => xScale((i < 1) ? 0 : brackets[i-1].top))
+    .attr("y", d => yScaleRate(d.percent))
+    .attr("width", (d, i) => ( 
+      xScale(
+        i < 1                   ? d.top                               : // If first bracket
+        i == brackets.length -1 ? 100000 : // If last bracket
+        +d.top - brackets[i-1].top
+        )))
+    .attr("height", d => yScaleRate(0) - yScaleRate(d.percent))
+
+  // Add top handle.
+  rectGroupEnter
+      .append("rect")
+      .attr("class", "handle-top")
+      .attr("fill", "transparent")
+      .style("cursor", "row-resize")
+      .merge(rectGroupUpdate.select(".handle-top"))
+      .attr("x", function () {
+      return (this.parentNode.getElementsByTagName("rect")[0].getAttribute("x"))
+      })
+      .attr("width", function () {
+      return (this.parentNode.getElementsByTagName("rect")[0].getAttribute("width"))
+      })
+      .attr("y", function (d,i) {
+        return (height - this.parentNode.getElementsByTagName("rect")[0].getAttribute('height') - (handleWidth/2))
+      })
+      .attr("height", handleWidth)
+      .call(dragUp);
+
+  // Add right handle.
+  rectGroupEnter
+      .append("rect")
+      .attr("class", "handle-right")
+      .attr("fill", "transparent")
+      //.attr("r", (d, i) => ((i < brackets.length-1) ? 8 : 0))
+      .style("cursor", "col-resize")
+      .merge(rectGroupUpdate.select(".handle-right"))
+      .attr("x", function () {
+        return (+this.parentNode.getElementsByTagName("rect")[0].getAttribute("x") + +this.parentNode.getElementsByTagName("rect")[0].getAttribute('width') -(handleWidth/2))
+      })
+      .attr("width", (d, i) => ((i < brackets.length-1) ? handleWidth : 0))
+      .attr("y", function () {
+        return (height - this.parentNode.getElementsByTagName("rect")[0].getAttribute("height"))
+      })
+      .attr("height", function () {
+        return (this.parentNode.getElementsByTagName("rect")[0].getAttribute("height"))
+      })
+      .call(dragRight);
+}
+
+drawBracket();
+drawTable();
+
+
+</script>
