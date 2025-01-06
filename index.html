@@ -1,25 +1,12 @@
 <!DOCTYPE html>
-<div id="container"></div>
-<div id="plot-container"></div>
-<div id="table-container">
-  <table><thead><tr><th>ID</th><th>From</th><th>To</th><th>Percent</th><th>People</th><th>Take</th></tr></thead><tbody></tbody></table>
-</div>
-
 <script type="module">
 
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
-const datasetFile = "./data/wage.csv";
-const datasetPre = await d3.csv(datasetFile, row => ({
-  range: row.range,
-  count: +row.count,
-  take: +row.take
-}));
+const datasetFile = "./data/income_2024.json";
+const datasetObj = await d3.json(datasetFile);
 
-const dataset = datasetPre.map(d => {
-      const [min, max] = d.range.replace(/\$/g, '').split('-').map(v => parseFloat(v.replace(/,/g, '').trim()));
-      return { ...d, from: min/1000, to: max/1000 };
-    });
+const dataset = datasetObj.data;
 
 // Create an SVG container
 const width = 800;
@@ -36,9 +23,9 @@ const svg = d3
   .append("g")
   .attr("transform", `translate(${margin}, ${margin})`);
 
-
+//d3.max(dataset, d => d.to)
 // Create scales for the chart
-const xScale = d3.scaleLinear().domain([0, d3.max(dataset, d => d.to)]).range([0, width]);
+const xScale = d3.scaleLinear().domain([0, 300]).range([0, width]);
 const yScaleRate = d3.scaleLinear().domain([0, 100]).range([height, 0]);
 const yScaleCount = d3.scaleLinear().domain([0, d3.max(dataset, d => d.count)]).range([height, 0]);
 
@@ -47,20 +34,22 @@ svg.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height
 svg.append("g").attr("class", "y-axis").call(d3.axisLeft(yScaleRate));
 svg.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(yScaleCount));
 
+const incomeDataContainer = svg.append("g").attr("id", "income-container");
 // Plot data
-svg.selectAll(".bar")
+const incomeDataSelection = incomeDataContainer
+            .selectAll(".bar")
             .data(dataset)
+
+incomeDataSelection
             .enter()
             .append("rect")
             .attr("class", "bar")
+            .merge(incomeDataSelection)
             .attr("x", d => xScale(d.from))
             .attr("y", d => yScaleCount(d.count/(d.to-d.from)))
             .attr("width", d => xScale(d.to-d.from))
             .attr("height", d => height - yScaleCount(d.count/(d.to-d.from)))
             .attr("fill", "red");
-
-
-
 
 // Define initial rectangles
 const brackets = [
@@ -71,50 +60,32 @@ const brackets = [
   { id: 4, top: 999999999, percent: 39 }
 ];
 
-function getFrom(i) {
-
-}
-function getTo(i) {
-
-}
-
 function drawTable() {
   // Create a table to display rectangle dimensions
-
-// Append table if it doesn't exist
   const container = d3.select("#table-container");
 
   // Update rows in tbody
-  const rowsUpdate = container.select("tbody").selectAll("tr").data(brackets);
+  const rowsSelection = container.select("tbody").selectAll("tr").data(brackets)
+    
 
-  // Enter new rows
-  const rowsEnter = rowsUpdate.enter().append("tr");
-
-  rowsEnter.selectAll("td")
-  .data((d,i) => [d.id, (d.id < 1) ? "$0" : "$" + brackets[d.id-1].top + "K", (d.id == brackets.length -1) ? "--" : "$" + d.top + "K", d.percent, dataset.filter(e => (
-    (e.from >= (d.id == 0 ? 0 : brackets[d.id-1].top)+1))).reduce((a,b)=>a+b.count, 0),
-  "$" + (dataset.filter(e => (
-    (+e.from > (d.id == 0 ? 0 : +brackets[d.id-1].top))))
-    .reduce((a,b)=>a+ (b.count * ((+d.percent/100) * Math.min(+b.to, +d.top)) / 1000000), 0)
-          // TODO assumes people in top of range.
-     ).toFixed(2)+"B"]) 
+  rowsSelection
     .enter()
-    .append("td")
-    .text(d => d);
+    .append("tr")
+    .merge(rowsSelection)
+    .html(d => "<td>" + [
+      d.id, (d.id < 1) ? "$0" : "$" + brackets[d.id-1].top + "K",
+      d.id == brackets.length -1 ? "--" : "$" + d.top + "K", 
+      d.percent, 
+      dataset.filter(e => (
+        (e.from >= (d.id == 0 ? 0 : brackets[d.id-1].top)+1))).reduce((a,b)=>a+b.count, 0),
+      "$" + (dataset.filter(e => (
+        (+e.from > (d.id == 0 ? 0 : +brackets[d.id-1].top))))
+        .reduce((a,b)=>a+ (b.count * ((+d.percent/100) * Math.min(+b.avg, +d.top)) / 1000000), 0)
+        ).toFixed(2)+"B"].join('</td><td>') + '</td>')
 
-  // Update existing rows
-  rowsUpdate.selectAll("td")
-  .data((d,i) => [d.id, (d.id < 1) ? "$0" : "$" + brackets[d.id-1].top + "K", (d.id == brackets.length -1) ? "--" : "$" + d.top + "K", d.percent, dataset.filter(e => (
-    (e.from >= (d.id == 0 ? 0 : brackets[d.id-1].top)+1))).reduce((a,b)=>a+b.count, 0),
-  "$" + (dataset.filter(e => (
-    (+e.from > (d.id == 0 ? 0 : +brackets[d.id-1].top))))
-    .reduce((a,b)=>a+ (b.count * ((+d.percent/100) * Math.min(+b.to, +d.top)) / 1000000), 0)
-          // TODO assumes people in top of range.
-     ).toFixed(2)+"B"])
-    .text(d => (d));
 
 // Remove old rows
-  rowsUpdate.exit().remove();
+rowsSelection.exit().remove();
 
   //.on("change", function (event, d) {
   //   const newXRight = +event.target.value;
@@ -219,3 +190,14 @@ drawTable();
 
 
 </script>
+<div class="center">
+  <div id="container"></div>
+  <div id="plot-container">
+  </div>
+  <div id="table-container">
+    <table><thead><tr><th>ID</th><th>From</th><th>To</th><th>Percent</th><th>People</th><th>Take</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+<div class="right">
+  <div id="total-container"></div>
+</div>
