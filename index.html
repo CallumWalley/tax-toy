@@ -8,7 +8,7 @@ const datasetObj = await d3.json(datasetFile);
 
 const dataset = datasetObj.data;
 
-// Create an SVG container
+// Main plot window.
 const width = 800;
 const height = 400;
 const margin = 50;
@@ -34,8 +34,9 @@ svg.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height
 svg.append("g").attr("class", "y-axis").call(d3.axisLeft(yScaleRate));
 svg.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(yScaleCount));
 
+
+// Plot income data
 const incomeDataContainer = svg.append("g").attr("id", "income-container");
-// Plot data
 const incomeDataSelection = incomeDataContainer
             .selectAll(".bar")
             .data(dataset)
@@ -51,35 +52,70 @@ incomeDataSelection
             .attr("height", d => height - yScaleCount(d.count/(d.to-d.from)))
             .attr("fill", "red");
 
-// Define initial rectangles
-const brackets = [
-  { id: 0, top: 15.6, percent: 10.5 },
-  { id: 1, top: 53.5, percent: 17.5 },
-  { id: 2, top: 78.1, percent: 30 },
-  { id: 3, top: 180, percent: 33 },
-  { id: 4, top: 999999999, percent: 39 }
+// Define tax brackets
+let incomeTaxes = [
+  {
+    name: "31 July 2024 [Current - National]",
+    brackets:[
+      { id: 0, top: 15.6, percent: 10.5 },
+      { id: 1, top: 53.5, percent: 17.5 },
+      { id: 2, top: 78.1, percent: 30 },
+      { id: 3, top: 180, percent: 33 },
+      { id: 4, top: 999999999, percent: 39 }
+    ],
+    isCustom: false
+  },
+  {
+    name: "2023 [Proposed - Greens]",
+    brackets:[
+      { id: 0, top: 10, percent: 0 },
+      { id: 1, top: 15.6, percent: 10.5 },
+      { id: 2, top: 53.5, percent: 17.5 },
+      { id: 3, top: 78.1, percent: 30 },
+      { id: 4, top: 180, percent: 33 },
+      { id: 5, top: 999999999, percent: 45 }
+    ],
+    isCustom: false
+  }
 ];
+
+let incomeTaxesCurrent = incomeTaxes[0];
+
+function drawDropdown(){  
+  // Redraw the select income tax plan dropdown
+  const options = dropdown.selectAll("option").data(incomeTaxes);
+
+  options
+    .enter()
+    .append("option")
+    .merge(options) // Merge enter and update selections
+    .text(d => d.name) // Set display text
+    .attr("value", (d, i) => i); // Set value
+  
+  dropdown.node().selectedIndex = incomeTaxes.indexOf(incomeTaxesCurrent);  
+  options.exit().remove();
+
+}
 
 function drawTable() {
   // Create a table to display rectangle dimensions
   const container = d3.select("#table-container");
 
   // Update rows in tbody
-  const rowsSelection = container.select("tbody").selectAll("tr").data(brackets)
+  const rowsSelection = container.select("tbody").selectAll("tr").data(incomeTaxesCurrent.brackets)
     
-
   rowsSelection
     .enter()
     .append("tr")
     .merge(rowsSelection)
     .html(d => "<td>" + [
-      d.id, (d.id < 1) ? "$0" : "$" + brackets[d.id-1].top + "K",
-      d.id == brackets.length -1 ? "--" : "$" + d.top + "K", 
+      d.id, (d.id < 1) ? "$0" : "$" + incomeTaxesCurrent.brackets[d.id-1].top + "K",
+      d.id == incomeTaxesCurrent.brackets.length -1 ? "--" : "$" + d.top + "K", 
       d.percent, 
       dataset.filter(e => (
-        (e.from >= (d.id == 0 ? 0 : brackets[d.id-1].top)+1))).reduce((a,b)=>a+b.count, 0),
+        (e.from >= (d.id == 0 ? 0 : incomeTaxesCurrent.brackets[d.id-1].top)+1))).reduce((a,b)=>a+b.count, 0),
       "$" + (dataset.filter(e => (
-        (+e.from > (d.id == 0 ? 0 : +brackets[d.id-1].top))))
+        (+e.from > (d.id == 0 ? 0 : +incomeTaxesCurrent.brackets[d.id-1].top))))
         .reduce((a,b)=>a+ (b.count * ((+d.percent/100) * Math.min(+b.avg, +d.top)) / 1000000), 0)
         ).toFixed(2)+"B"].join('</td><td>') + '</td>')
 
@@ -105,23 +141,35 @@ rowsSelection.exit().remove();
 // Add drag behaviors
 const dragUp = d3.drag()
   .on("drag", function (event, d) {
-    brackets.find(e => e.id == d.id).percent = Math.min(100, Math.max(yScaleRate.invert(event.y), -100)).toFixed(2);
+    // If looking at predefined bracket, add new 'custom'
+    if (!incomeTaxesCurrent.isCustom){
+      incomeTaxes.push({name:"Custom Plan", brackets: structuredClone(incomeTaxesCurrent.brackets), isCustom: true})
+      incomeTaxesCurrent = incomeTaxes[incomeTaxes.length-1];
+      drawDropdown();
+    }
+    incomeTaxesCurrent.brackets.find(e => e.id == d.id).percent = Math.min(100, Math.max(yScaleRate.invert(event.y), -100)).toFixed(2);
     drawBracket();
     drawTable();
   });
 
 const dragRight = d3.drag()
 .on("drag", function (event, d) {
-    brackets.find(e => e.id == d.id).top = Math.max(xScale.invert(event.x), (d.id < 1) ? 0 : brackets[d.id-1].top+1).toFixed(2);
-    console.log(brackets.find(e => e.id == d.id).top)
-    drawBracket();
-    drawTable();
+  if (!incomeTaxesCurrent.isCustom){
+      incomeTaxes.push({name:"Custom Plan", brackets: structuredClone(incomeTaxesCurrent.brackets), isCustom: true})
+      incomeTaxesCurrent = incomeTaxes[incomeTaxes.length-1];
+      drawDropdown();
+  }
+  incomeTaxesCurrent.brackets.find(e => e.id == d.id).top = Math.max(xScale.invert(event.x), (d.id < 1) ? 0 : incomeTaxesCurrent.brackets[d.id-1].top+1).toFixed(2);
+  drawBracket();
+  drawTable();
 });
 
 function drawBracket(){
   // Draw rectangles
   const rectGroupUpdate = svg.selectAll(".rect-group")
-    .data(brackets)
+    .data(incomeTaxesCurrent.brackets)
+
+  rectGroupUpdate.exit().remove();
 
   const rectGroupEnter = rectGroupUpdate.enter()
     .append("g")
@@ -135,13 +183,13 @@ function drawBracket(){
     .merge(rectGroupUpdate.select("rect"))
 
   rectGroupMerged
-    .attr("x", (d, i) => xScale((i < 1) ? 0 : brackets[i-1].top))
+    .attr("x", (d, i) => xScale((i < 1) ? 0 : incomeTaxesCurrent.brackets[i-1].top))
     .attr("y", d => yScaleRate(d.percent))
     .attr("width", (d, i) => ( 
       xScale(
         i < 1                   ? d.top                               : // If first bracket
-        i == brackets.length -1 ? 100000 : // If last bracket
-        +d.top - brackets[i-1].top
+        i == incomeTaxesCurrent.brackets.length -1 ? 100000 : // If last bracket
+        +d.top - incomeTaxesCurrent.brackets[i-1].top
         )))
     .attr("height", d => yScaleRate(0) - yScaleRate(d.percent))
 
@@ -175,7 +223,7 @@ function drawBracket(){
       .attr("x", function () {
         return (+this.parentNode.getElementsByTagName("rect")[0].getAttribute("x") + +this.parentNode.getElementsByTagName("rect")[0].getAttribute('width') -(handleWidth/2))
       })
-      .attr("width", (d, i) => ((i < brackets.length-1) ? handleWidth : 0))
+      .attr("width", (d, i) => ((i < incomeTaxesCurrent.brackets.length-1) ? handleWidth : 0))
       .attr("y", function () {
         return (height - this.parentNode.getElementsByTagName("rect")[0].getAttribute("height"))
       })
@@ -185,13 +233,27 @@ function drawBracket(){
       .call(dragRight);
 }
 
+const dropdownContainer = d3.select("#dropdown-container");
+const dropdown = dropdownContainer
+  .append("select")
+  .attr("id", "dropdown-menu")
+  .on("change", function() {
+    incomeTaxesCurrent = incomeTaxes[this.value];
+    drawBracket();
+    drawTable();
+  });
+
+
+
 drawBracket();
 drawTable();
-
+drawDropdown();
 
 </script>
 <div class="center">
-  <div id="container"></div>
+  <div id="dropdown-container">
+    <p>Income Tax Plan:</p>
+  </div>
   <div id="plot-container">
   </div>
   <div id="table-container">
