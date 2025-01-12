@@ -1,0 +1,46 @@
+* {
+  font-family: Helvetica, sans-serif;
+}
+
+table {
+  border: 1px solid aliceblue;
+  border-radius: 2px;
+  width: 100%;
+}
+
+thead > tr {
+  border-bottom: 1px solid aliceblue;
+}
+
+th {
+  font-weight: bolder;
+  text-align: left;
+}
+
+td {
+  padding: 0 4em 0 0em;
+  text-align: left;
+}
+
+.top {
+  width: 100%;
+}
+
+.main {
+  display: flex;
+}
+
+.right {
+  padding-left: 6em;
+}
+
+input.income-bracket-percent, input.income-bracket-range {
+  width: 4em;
+  font-size: medium;
+}
+
+#income-bracket-add {
+  float: right;
+}
+
+/*# sourceMappingURL=style.css.map */
