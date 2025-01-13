@@ -113,7 +113,7 @@ function calculateIncomeTax(){
     // Ignore entries under this bracket and sum max taxable amount otherwise.
     const {count, take} = incomeDataset.filter(e => (e.from > from)).reduce((a,b)=> {
       a.count += b.count;
-      a.take += b.count * ((incomeBracketsCurrent.brackets[i].percent/100) * Math.min(b.avg, i == incomeBracketsCurrent.brackets.length-1 ? Infinity : incomeBracketsCurrent.brackets[i].top));
+      a.take += b.count * ((incomeBracketsCurrent.brackets[i].percent/100) * (Math.min(b.avg, incomeBracketsCurrent.brackets[i].top) - (i == 0 ? 0 : incomeBracketsCurrent.brackets[i-1].top)));
       return a;
     },{count:0, take:0})
     cumulative += take;
@@ -202,7 +202,7 @@ function drawTable() {
        }
        <td><input class="income-bracket-percent" type="number" min=0 max=100 value=${d.percent.toFixed()} oninput="changeIncomeBracketPercent(${i}, this.value)"> %</td>
        <td>${data.income.brackets[i].count}</td>
-       <td>$${(data.income.brackets[i].take/1000000).toFixed(2) + "B"}B</td>
+       <td>$${(data.income.brackets[i].take/1000000).toFixed(2)}B</td>
        <td>${i > 0 ? "<button onclick=removeIncomeBracket(${i})>x</button>" : ""}</td>
     `)
   const addButton = d3.select("#income-bracket-add");
