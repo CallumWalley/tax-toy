@@ -155,6 +155,7 @@ function removeIncomeBracket(i){
   if (!incomeBracketsCurrent.isCustom){createNewIncomePlan()}
   incomeBracketsCurrent.brackets.splice(i,1);
   incomeBracketsCurrent.brackets.map((v, i)=> {v.id = i}); // re-index
+  incomeBracketsCurrent.brackets[incomeBracketsCurrent.brackets.length-1].top = 999999999;
   calculateIncomeTax();
 }
 
@@ -203,7 +204,7 @@ function drawTable() {
        <td><input class="income-bracket-percent" type="number" min=0 max=100 value=${d.percent.toFixed()} oninput="changeIncomeBracketPercent(${i}, this.value)"> %</td>
        <td>${data.income.brackets[i].count}</td>
        <td>$${(data.income.brackets[i].take/1000000).toFixed(2)}B</td>
-       <td>${i > 0 ? "<button onclick=removeIncomeBracket(${i})>x</button>" : ""}</td>
+       <td>${i > 0 ? "<button onclick=removeIncomeBracket(" + i + ")>x</button>" : ""}</td>
     `)
   const addButton = d3.select("#income-bracket-add");
   if (incomeBracketsCurrent.brackets.length > 11){
