@@ -1,0 +1,76 @@
+{
+    "plans": [
+        {
+            "name": "31 July 2024 [Current - National]",
+            "date": "2025",
+            "proposer": "National Party",
+            "link": "",
+            "brackets": [
+                {
+                    "top": 15.6,
+                    "percent": 10.5
+                },
+                {
+                    "top": 53.5,
+                    "percent": 17.5
+                },
+                {
+                    "top": 78.1,
+                    "percent": 30
+                },
+                {
+                    "top": 180,
+                    "percent": 33
+                },
+                {
+                    "top": 999999999,
+                    "percent": 39
+                }
+            ],
+            "gst": 15,
+            "corp": {
+                "standard": 28,
+                "non-profit": 28,
+                "maori": 17.5
+            }
+        },
+        {
+            "name": "2023 [Proposed - Greens]",
+            "date": "2023",
+            "proposer": "Green Party",
+            "link": "",
+            "brackets": [
+                {
+                    "top": 10,
+                    "percent": 0
+                },
+                {
+                    "top": 15.6,
+                    "percent": 10.5
+                },
+                {
+                    "top": 53.5,
+                    "percent": 17.5
+                },
+                {
+                    "top": 78.1,
+                    "percent": 30
+                },
+                {
+                    "top": 180,
+                    "percent": 33
+                },
+                {
+                    "top": 999999999,
+                    "percent": 45
+                }
+            ],
+            "gst": 15,
+            "corp": {
+                "standard": 28,
+                "non-profit": 28,
+                "maori": 17.5
+            }
+        }
+    ]
+}

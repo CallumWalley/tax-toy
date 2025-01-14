@@ -9,30 +9,86 @@
 <div>
   <div class="top">
     <div id="dropdown-container">
-      <p>Income Tax Plan:</p>
+      <h2>Tax Plan:</h2>
     </div>
   </div>
   <div class="main">
     <div class="center">
-      <div id="plot-container">
+      <div class="tab-container-buttons">
+        <button id="tab-income-button" class="button__tab active" onclick="switchTab('#tab-income')">
+          <h3>Income Tax</h3>
+        </button>
+        <button id="tab-gst-button" class="button__tab" onclick="switchTab('#tab-gst')">
+          <h3>Goods & Services Tax</h3>
+        </button>
+        <button id="tab-corp-button" class="button__tab" onclick="switchTab('#tab-corp')">
+          <h3>Corporate Tax</h3>
+        </button>
       </div>
-      <div class="mdc-data-table">
-        <div class="mdc-data-table__table-container">
-          <table id="income-bracket-table-container" class="mdc-data-table__table" aria-label="Income Tax Brackets">
+      <div class="tab-container">
+        <div id="tab-income" class="tab">
+          <em>Individual income tax, or provisional tax, is a tax on income earned by an individual.</em>
+          <div id="plot-container">
+          </div>
+          <div class="mdc-data-table">
+            <h4>Income Tax Brackets</h4>
+            <div class="mdc-data-table__table-container">
+              <table id="income-bracket-table-container" class="mdc-data-table__table" aria-label="Income Tax Brackets">
+                <thead>
+                  <tr class="mdc-data-table__header-row">
+                    <th class="mdc-data-table__header-cell" role="columnheader" scope="col">ID</th>
+                    <th class="mdc-data-table__header-cell" role="columnheader" scope="col">From</th>
+                    <th class="mdc-data-table__header-cell" role="columnheader" scope="col">To</th>
+                    <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Percent</th>
+                    <th class="mdc-data-table__header-cell" role="columnheader" scope="col">People</th>
+                    <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Take</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+              <button id="income-bracket-add" onclick="insertIncomeBracket()">Add New Bracket</button>
+            </div>
+
+          </div>
+        </div>
+        <div id="tab-gst" style="display: none;" class="tab">
+          <em>GST is tax on goods and services sold in New Zealand by registered suppliers.</em>
+          <table id="gst-table-container" aria-label="GST info">
             <thead>
               <tr class="mdc-data-table__header-row">
-                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">ID</th>
-                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">From</th>
-                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">To</th>
-                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Percent</th>
-                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">People</th>
-                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Take</th>
+                <th role="columnheader" scope="col"></th>
+                <th role="columnheader" scope="col">Taxable</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Rate</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
               </tr>
             </thead>
             <tbody>
             </tbody>
           </table>
-          <button id="income-bracket-add" onclick="insertIncomeBracket()">Add New Bracket</button>
+          <div class="slidecontainer">
+            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderGst"
+              oninput="changeGSTRate(this.value)">
+          </div>
+        </div>
+        <div id="tab-corp" style="display: none;" class="tab">
+          <em>Corporate tax is a tax on income businesses earn.</em>
+          <table id="corp-table-container" aria-label="Corporate Tax info">
+            <thead>
+              <tr class="mdc-data-table__header-row">
+                <th role="columnheader" scope="col"></th>
+                <th role="columnheader" scope="col">Taxable</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Rate</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+          <div class="slidecontainer">
+            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderCorp"
+              oninput="changeCorpRate(this.value)">
+          </div>
         </div>
       </div>
     </div>

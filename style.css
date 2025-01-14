@@ -39,8 +39,80 @@ input.income-bracket-percent, input.income-bracket-range {
   font-size: medium;
 }
 
+.tab-container-buttons {
+  padding: 1em 0 0 0;
+}
+
+.tab-container {
+  background-color: seashell;
+  border: black 2px solid;
+  padding: 1em;
+}
+
+.button__tab {
+  background-color: white;
+  border: black 2px solid;
+  border-bottom: none;
+  padding: 1em;
+}
+
+.button__tab.active {
+  background-color: seashell;
+  margin-bottom: -2px;
+  border-bottom: seashell 2px solid;
+}
+
+.tab {
+  flex-direction: column;
+}
+
 #income-bracket-add {
-  float: right;
+  margin: auto;
+  display: flex;
+}
+
+#dropdown-menu {
+  display: flex;
+}
+
+h2 {
+  display: flex;
+}
+
+#dropdown-container {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.slidecontainer {
+  width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+  -webkit-appearance: none; /* Override default CSS styles */
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  outline: none;
+  background-color: black;
+  opacity: 0.7;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 6px;
+  height: 25px;
+  background: #6c5cff;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 6px;
+  height: 25px;
+  background: #6c5cff;
+  cursor: pointer;
 }
 
 /*# sourceMappingURL=style.css.map */

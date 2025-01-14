@@ -1,0 +1,21 @@
+{
+    "source": {
+        "date": "20 September 2024",
+        "url": "https://www.treasury.govt.nz/sites/default/files/2024-10/fsgnz-2024.pdf",
+        "name": "End of Year Financial Statement"
+    },
+    "data": [
+        {
+            "value": 60500000,
+            "name": "Gross"
+        },
+        {
+            "value": -2635700,
+            "name": "Refunds"
+        },
+        {
+            "value": 4713000,
+            "name": "Non-resident withholding tax"
+        }
+    ]
+}
