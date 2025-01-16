@@ -31,8 +31,11 @@
             "corp": {
                 "standard": 28,
                 "non-profit": 28,
-                "maori": 17.5
+                "maori-authority": 17.5,
+                "nrwt": 15,
+                "rwt": 33
             }
+            
         },
         {
             "name": "2023 [Proposed - Greens]",
@@ -69,7 +72,9 @@
             "corp": {
                 "standard": 28,
                 "non-profit": 28,
-                "maori": 17.5
+                "maori-authority": 17.5,
+                "nrwt": 15,
+                "rwt": 33
             }
         }
     ]

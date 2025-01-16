@@ -28,6 +28,7 @@
       <div class="tab-container">
         <div id="tab-income" class="tab">
           <em>Individual income tax, or provisional tax, is a tax on income earned by an individual.</em>
+          <hr>
           <div id="plot-container">
           </div>
           <div class="mdc-data-table">
@@ -54,6 +55,11 @@
         </div>
         <div id="tab-gst" style="display: none;" class="tab">
           <em>GST is tax on goods and services sold in New Zealand by registered suppliers.</em>
+          <hr>
+          <div class="slidecontainer">
+            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderGst"
+              oninput="changeGSTRate(this.value)">
+          </div>
           <table id="gst-table-container" aria-label="GST info">
             <thead>
               <tr class="mdc-data-table__header-row">
@@ -66,13 +72,15 @@
             <tbody>
             </tbody>
           </table>
-          <div class="slidecontainer">
-            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderGst"
-              oninput="changeGSTRate(this.value)">
-          </div>
         </div>
         <div id="tab-corp" style="display: none;" class="tab">
-          <em>Corporate tax is a tax on income businesses earn.</em>
+          <em>Corporate tax is a tax on business income.</em>
+          <hr>
+          <div class="slidecontainer">
+            <h4>Corporate</h4>
+            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderCorp"
+              oninput="changeCorpRate(this.value)">
+          </div>
           <table id="corp-table-container" aria-label="Corporate Tax info">
             <thead>
               <tr class="mdc-data-table__header-row">
@@ -85,10 +93,7 @@
             <tbody>
             </tbody>
           </table>
-          <div class="slidecontainer">
-            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderCorp"
-              oninput="changeCorpRate(this.value)">
-          </div>
+
         </div>
       </div>
     </div>

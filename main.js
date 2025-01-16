@@ -76,14 +76,14 @@ incomeDataSelection
 const totalPlot = d3.select("#total-container")
   .append("svg")
   .attr("width", 200)
-  .attr("height", 500);
+  .attr("height", 1000);
 
 const totalXScale = d3.scaleBand()
   .range([0, 180])
   .padding(0.1);
 
 const totalYScale = d3.scaleLinear()
-  .range([450, 0]);
+  .range([900, 0]);
 
 const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 totalPlot.append("g").attr("class", "y-axis").attr("transform", `translate(170,0)`).call(d3.axisRight(totalYScale));
@@ -164,8 +164,8 @@ function calculateCorp() {
   let cumulativeTake = 0;
 
   for (let i = 0; i < corpDataset.length; i++) {
-    cumulativeTake += corpDataset[i].value * (planCurrent.corp.standard/100);
-    data.corp.push({ name: corpDataset[i].name, total: corpDataset[i].value, take: corpDataset[i].value * (planCurrent.corp.standard/100) });
+    cumulativeTake += corpDataset[i].value * (planCurrent.corp[corpDataset[i].type]/100);
+    data.corp.push({ name: corpDataset[i].name, total: corpDataset[i].value, type:corpDataset[i].type , take: corpDataset[i].value * (planCurrent.corp.standard/100) });
   }
 
   data.totals.corporate = cumulativeTake;
@@ -274,7 +274,8 @@ function drawGSTTable() {
   const container = d3.select("#gst-table-container");
 
   // Update rows in tbody
-  const rowsSelection = container.select("tbody").selectAll("tr").data(data.gst.concat([{ name: "Total", total: "", take: data.totals.gst }]))
+//  const rowsSelection = container.select("tbody").selectAll("tr").data(data.gst.concat([{ name: "Total", total: "", take: data.totals.gst }]))
+  const rowsSelection = container.select("tbody").selectAll("tr").data(data.gst);
 
   rowsSelection
     .enter()
@@ -295,7 +296,7 @@ function drawCorpTable() {
   const container = d3.select("#corp-table-container");
 
   // Update rows in tbody
-  const rowsSelection = container.select("tbody").selectAll("tr").data(data.corp.concat([{ name: "Total", total: "", take: data.totals.corporate }]))
+  const rowsSelection = container.select("tbody").selectAll("tr").data(data.corp);
 
   rowsSelection
     .enter()
@@ -304,13 +305,12 @@ function drawCorpTable() {
     .html((d) => `
          <td>${d.name}</td>
          <td>$${(d.total/1000000).toFixed(2)}B</td>
-         <td>${planCurrent.corp.standard}%</td>
+         <td>${planCurrent.corp[d.type]}%</td>
          <td>$${((d.take/1000000).toFixed(2))}B</td>
       `)
   
   const slider = d3.select("#sliderCorp");
   slider.attr("value", planCurrent.corp.standard);
-  
 }
 
 function switchTab(id) {
@@ -451,7 +451,6 @@ function drawIncomeBracket() {
 drawDropdown();
 calculateGST();
 calculateCorp();
-
 calculateIncomeTax();
 
 // allow access from page
