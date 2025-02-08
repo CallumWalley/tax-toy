@@ -70,7 +70,7 @@ incomeDataSelection
   .attr("y", d => yScaleCount(d.count / (d.to - d.from)))
   .attr("width", d => xScale(d.to - d.from))
   .attr("height", d => height - yScaleCount(d.count / (d.to - d.from)))
-  .attr("fill", "red");
+  .attr("fill", "lightblue");
 
 // Draw total plot
 const totalPlot = d3.select("#total-container")
