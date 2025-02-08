@@ -1,17 +1,78 @@
 {
-"source": {
-    "date": "20 September 2024",
-    "url": "https://www.treasury.govt.nz/sites/default/files/2024-10/fsgnz-2024.pdf",
-    "name": "End of Year Financial Statement"
-},
-"data": [
+  "source": {
+    "date": "01 March 2024",
+    "url": "https://www.ird.govt.nz/-/media/project/ir/home/documents/about-us/tax-statistics---current/revenue-and-refunds/net-ird-gst-statistics/net-ird-gst-statistics/net-ird-gst-statistics-2024.xlsx?modified=20250116225857&modified=20250116225857",
+    "name": "Net Inland Revenue GST statistics datasets",
+    "assumptions": [
+      "does not include GST on imports"
+    ]
+  },
+  "data": [
     {
-      "value": 316306700,
-      "name": "Gross"
+      "from": -1.000,
+      "to": 0.001,
+      "count": 90110,
+      "avg": -65.925
     },
     {
-      "value": -121120000,
-      "name": "Refunds"
+      "from": 0.001,
+      "to": 60,
+      "count": 160538,
+      "avg": -13.522
+    },
+    {
+      "from": 60.001,
+      "to": 250,
+      "count": 194474,
+      "avg": 49.455
+    },
+    {
+      "from": 250.001,
+      "to": 500,
+      "count": 74911,
+      "avg": 127.364
+    },
+    {
+      "from": 500.001,
+      "to": 1000,
+      "count": 55845,
+      "avg": 230.425
+    },
+    {
+      "from": 1000.001,
+      "to": 2000,
+      "count": 40221,
+      "avg": 438.510
+    },
+    {
+      "from": 2000.001,
+      "to": 5000,
+      "count": 29812,
+      "avg": 862.248
+    },
+    {
+      "from": 5000.001,
+      "to": 10000,
+      "count": 10478,
+      "avg": 1782.805
+    },
+    {
+      "from": 10000.001,
+      "to": 20000,
+      "count": 5169,
+      "avg": 3158.370
+    },
+    {
+      "from": 20000.001,
+      "to": 100000,
+      "count": 4404,
+      "avg": 7053.517
+    },
+    {
+      "from": 1000000.001,
+      "to": 1100000.001,
+      "count": 1255,
+      "avg": 42996.993
     }
   ]
 }

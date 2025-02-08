@@ -29,8 +29,9 @@
         <div id="tab-income" class="tab">
           <em>Individual income tax, or provisional tax, is a tax on income earned by an individual.</em>
           <hr>
-          <div id="plot-container">
+          <div id="income-plot-container">
           </div>
+          <p>drag brackets on plot to adjust</p>
           <div class="mdc-data-table">
             <h4>Income Tax Brackets</h4>
             <div class="mdc-data-table__table-container">
@@ -59,6 +60,8 @@
           <div class="slidecontainer">
             <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderGst"
               oninput="changeGSTRate(this.value)">
+          </div>
+          <div id="gst-plot-container">
           </div>
           <table id="gst-table-container" aria-label="GST info">
             <thead>

@@ -36,7 +36,7 @@ const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"
 const handleWidth = 12;
 
 const incomePlot = d3
-  .select("#plot-container")
+  .select("#income-plot-container")
   .append("svg")
   .attr("width", width + margin * 2)
   .attr("height", height + margin * 2)
@@ -45,14 +45,14 @@ const incomePlot = d3
 
 //d3.max(dataset, d => d.to)
 // Create scales for the chart
-const xScale = d3.scaleLinear().domain([0, 300]).range([0, width]);
-const yScaleRate = d3.scaleLinear().domain([0, 100]).range([height, 0]);
-const yScaleCount = d3.scaleLinear().domain([0, d3.max(incomeDataset, d => d.count)]).range([height, 0]);
+const incomexScale = d3.scaleLinear().domain([0, 300]).range([0, width]);
+const incomeyScaleRate = d3.scaleLinear().domain([0, 100]).range([height, 0]);
+const incomeyScaleCount = d3.scaleLinear().domain([0, d3.max(incomeDataset, d => d.count)]).range([height, 0]);
 
 // Add axes
-incomePlot.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale));
-incomePlot.append("g").attr("class", "y-axis").call(d3.axisLeft(yScaleRate));
-incomePlot.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(yScaleCount));
+incomePlot.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(incomexScale));
+incomePlot.append("g").attr("class", "y-axis").call(d3.axisLeft(incomeyScaleRate));
+incomePlot.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(incomeyScaleCount));
 
 
 // Plot income data
@@ -66,12 +66,47 @@ incomeDataSelection
   .append("rect")
   .attr("class", "bar")
   .merge(incomeDataSelection)
-  .attr("x", d => xScale(d.from))
-  .attr("y", d => yScaleCount(d.count / (d.to - d.from)))
-  .attr("width", d => xScale(d.to - d.from))
-  .attr("height", d => height - yScaleCount(d.count / (d.to - d.from)))
+  .attr("x", d => incomexScale(d.from))
+  .attr("y", d => incomeyScaleCount(d.count / (d.to - d.from)))
+  .attr("width", d => incomexScale(d.to - d.from))
+  .attr("height", d => height - incomeyScaleCount(d.count / (d.to - d.from)))
   .attr("fill", "lightblue");
 
+// Draw GST plot
+
+const gstPlot = d3
+  .select("#gst-plot-container")
+  .append("svg")
+  .attr("width", width + margin * 2)
+  .attr("height", height + margin * 2)
+  .append("g")
+  .attr("transform", `translate(${margin}, ${margin})`);
+
+  const gstxScale = d3.scaleLinear().domain([0, 110000]).range([0, width]);
+  const gstyscaleCount = d3.scaleLinear().domain([d3.min(gstDataset, d => d.count * d.avg), d3.max(gstDataset, d => d.count * d.avg)]).range([height, 0]);
+  
+  // Add axes
+  gstPlot.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(gstxScale));
+  gstPlot.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(gstyscaleCount));
+  
+  
+  // Plot income data
+  const gstDataContainer = gstPlot.append("g").attr("id", "gst-container");
+  const gstDataSelection = gstDataContainer
+    .selectAll(".bar")
+    .data(gstDataset)
+  
+  gstDataSelection
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .merge(gstDataSelection)
+    .attr("x", d => gstxScale(d.from))
+    .attr("y", d => gstyscaleCount((d.avg * d.count) ))
+    .attr("width", d => gstxScale(d.to - d.from))
+    .attr("height", d => height - gstyscaleCount((d.avg * d.count) ))
+    .attr("fill", "lightblue");
+  
 // Draw total plot
 const totalPlot = d3.select("#total-container")
   .append("svg")
@@ -185,7 +220,7 @@ function insertIncomeBracket() {
   if (!planCurrent.isCustom) { createNewIncomePlan() }
   // Get range of second to last bracket.
   const bracketEnd = planCurrent.brackets[planCurrent.brackets.length - 2].top;
-  planCurrent.brackets[planCurrent.brackets.length - 1].top = bracketEnd + ((xScale.domain()[1] - bracketEnd) / 2);
+  planCurrent.brackets[planCurrent.brackets.length - 1].top = bracketEnd + ((incomexScale.domain()[1] - bracketEnd) / 2);
   planCurrent.brackets.push({ id: 0, top: 999999999, percent: planCurrent.brackets[planCurrent.brackets.length - 1].percent + 5 })
   planCurrent.brackets.map((v, i) => { v.id = i }); // re-index
   calculateIncomeTax();
@@ -371,12 +406,12 @@ function drawIncomeBracket() {
   // Add drag behaviors
   const dragUp = d3.drag()
     .on("drag", function (event, d) {
-      changeIncomeBracketPercent(d.id, yScaleRate.invert(event.y))
+      changeIncomeBracketPercent(d.id, incomeyScaleRate.invert(event.y))
     });
 
   const dragRight = d3.drag()
     .on("drag", function (event, d) {
-      changeIncomeBracketRange(d.id, xScale.invert(event.x))
+      changeIncomeBracketRange(d.id, incomexScale.invert(event.x))
     });
 
   // Draw rectangles
@@ -397,15 +432,15 @@ function drawIncomeBracket() {
     .merge(rectGroupUpdate.select("rect"))
 
   rectGroupMerged
-    .attr("x", (d, i) => xScale((i < 1) ? 0 : planCurrent.brackets[i - 1].top))
-    .attr("y", d => yScaleRate(d.percent))
+    .attr("x", (d, i) => incomexScale((i < 1) ? 0 : planCurrent.brackets[i - 1].top))
+    .attr("y", d => incomeyScaleRate(d.percent))
     .attr("width", (d, i) => (
-      xScale(
+      incomexScale(
         i < 1 ? d.top : // If first bracket
           i == planCurrent.brackets.length - 1 ? 100000 : // If last bracket
             +d.top - planCurrent.brackets[i - 1].top
       )))
-    .attr("height", d => yScaleRate(0) - yScaleRate(d.percent))
+    .attr("height", d => incomeyScaleRate(0) - incomeyScaleRate(d.percent))
 
   // Add top handle.
   rectGroupEnter
