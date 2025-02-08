@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile SCSS",
+            "type": "shell",
+            "command": "sass",
+            "args": [
+                "style.scss",
+                "style.css"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

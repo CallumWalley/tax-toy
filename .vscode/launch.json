@@ -9,6 +9,7 @@
             "request": "launch",
             "name": "Open index.html",
             "file": "index.html",
+            "preLaunchTask": "Compile SCSS",
             "runtimeArgs": ["--disable-web-security"]
         }
     ]
