@@ -278,11 +278,10 @@ function drawIncomeTable() {
 }
 
 function drawGSTTable() {
-  const container = d3.select("#gst-table-container");
 
   // Update rows in tbody
   //  const rowsSelection = container.select("tbody").selectAll("tr").data(data.gst.concat([{ name: "Total", total: "", take: data.totals.gst }]))
-  const rowsSelection = container.select("tbody").selectAll("tr").data(data.gst);
+  const rowsSelection = d3.select("#gst-table-container").select("tbody").selectAll("tr").data(data.gst);
 
   rowsSelection
     .enter()
@@ -300,60 +299,54 @@ function drawGSTTable() {
 
 }
 function drawCorpTable() {
-  const container = d3.select("#corp-table-container");
-  const subselection = container.selectAll("div").data(data.corp);
 
-  subselection
-    .enter()
+  const containers =  d3.select("#corp-table-container")
+  .selectAll("div")
+  .data(data.corp)
+  .enter()
+  .append("div")
+  .attr("id", (d)=> `#corp-table-${d.slug}`)
+
+  containers
+    .append("h4")
+    .text((d) => d.name);
+
+  containers
     .append("div")
-    .merge(subselection)
-    .append((d) => drawTable(d))
+    .attr("class", "slidecontainer")
+    .append("input")
+    .attr("type", "range")
+    .attr("min", 0)
+    .attr("max", 100)
+    .attr("step", 0.1)
+    .attr("class", "slider")
+    .attr("id", (d) => `slider-corp-${d.slug}`)
+    .attr("oninput", (d) => `changeCorpRate(this.value, '${d.slug}')`)
 
-  function drawTable(data) {
-    const tableHeader = 
-    `   <tr class="mdc-data-table__header-row">
-        <th role="columnheader" scope="col"></th>
-        <th role="columnheader" scope="col">Taxable</th>
-        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
-        </tr>
-    `
-    const subcontainer = container.append("div")
-    subcontainer.append("h4").text(data.name);
-    subcontainer
-      .append("div")
-      .attr("class", "slidecontainer")
-      .append("input")
-      .attr("type", "range")
-      .attr("min", 0)
-      .attr("max", 100)
-      .attr("step", 0.1)
-      .attr("class", "slider")
-      .attr("id", `slider-corp-${data.slug}`)
-      .attr("oninput", `changeCorpRate(this.value, '${data.slug}')`)
+  let tables = containers
+    .append("table")
+    .attr("id", (d) => `corp-table-${d.slug}`)
+    .attr("aria-label", (d) => d.name)
 
-    const subtable = subcontainer
-      .append("table")
-      .attr("id", `corp-table-${data.slug}`)
-      .attr("aria-label", data.name)
+  tables
+    .append("tr").attr("class", "mdc-data-table__header-row")
+    .html(`<th role="columnheader" scope="col"></th>
+      <th role="columnheader" scope="col">Taxable</th>
+      <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
+    `)
+    
 
-    subtable
-      .append("thead")
-      .html(tableHeader)
-
-    subtable.append("tbody")
-    const subrowsSelection = subtable.select("tbody").selectAll("tr").data(data.components);
-
-    subrowsSelection
+  let tablerows = tables.append("tbody").selectAll("tr").data((d) => d.components)
+  
+  tablerows
     .enter()
     .append("tr")
-    .merge(subrowsSelection)
+    .merge(tablerows)
     .html((d) => `
       <td>${d.name}</td>
       <td>$${(d.total/1000000).toFixed(2)}B</td>
-      <td>$${((d.take/1000000).toFixed(2))}B</td>
+      <td>$${(d.take/1000000).toFixed(2)}B</td>
     `)
-
-    return subcontainer.node();
   }
 
 
@@ -406,7 +399,7 @@ function drawCorpTable() {
   //   slider.attr("value", planCurrent.corp.corp);
   // });
 
-}
+
 
 function switchTab(id) {
   d3.selectAll(".button__tab")
