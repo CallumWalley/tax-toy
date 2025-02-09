@@ -151,8 +151,8 @@ function calculateGST() {
   let cumulativeTake = 0;
 
   for (let i = 0; i < gstDataset.length; i++) {
-    cumulativeTake += gstDataset[i].value * (planCurrent.gst/100);
-    data.gst.push({ name: gstDataset[i].name, total: gstDataset[i].value, take: gstDataset[i].value * (planCurrent.gst/100) });
+    cumulativeTake += gstDataset[i].value * (planCurrent.gst / 100);
+    data.gst.push({ name: gstDataset[i].name, total: gstDataset[i].value, take: gstDataset[i].value * (planCurrent.gst / 100) });
   }
 
   data.totals.gst = cumulativeTake;
@@ -164,20 +164,27 @@ function calculateCorp() {
   let cumulativeTake = 0;
 
   for (let i = 0; i < corpDataset.length; i++) {
-    cumulativeTake += corpDataset[i].value * (planCurrent.corp[corpDataset[i].type]/100);
-    data.corp.push({ name: corpDataset[i].name, total: corpDataset[i].value, type:corpDataset[i].type , take: corpDataset[i].value * (planCurrent.corp.standard/100) });
+    let components = [];
+
+    corpDataset[i].components.forEach(x => {
+      let take = x.value * planCurrent.corp[corpDataset[i].slug] / 100;
+      components.push({ name: x.name, total: x.value, take: take })
+      cumulativeTake += take;
+    });
+    data.corp.push({ name: corpDataset[i].name, description: corpDataset[i].description, components: components, slug:corpDataset[i].slug });
   }
 
   data.totals.corporate = cumulativeTake;
   drawCorpTable();
 }
 function createNewIncomePlan() {
-  plans.push({ 
-    name: "Custom Plan", 
-    brackets: structuredClone(planCurrent.brackets), 
-    gst: structuredClone(planCurrent.gst), 
-    corp: structuredClone(planCurrent.corp), 
-    isCustom: true })
+  plans.push({
+    name: "Custom Plan",
+    brackets: structuredClone(planCurrent.brackets),
+    gst: structuredClone(planCurrent.gst),
+    corp: structuredClone(planCurrent.corp),
+    isCustom: true
+  })
   planCurrent = plans[plans.length - 1];
   drawDropdown();
 }
@@ -218,15 +225,15 @@ function changeIncomeBracketRange(bracket, value) {
 }
 
 function changeGSTRate(value) {
-  if (!planCurrent.isCustom) {createNewIncomePlan()}
+  if (!planCurrent.isCustom) { createNewIncomePlan() }
   planCurrent.gst = value;
   calculateGST();
   drawTotal();
 }
 
-function changeCorpRate(value) {
-  if (!planCurrent.isCustom) {createNewIncomePlan()}
-  planCurrent.corp.standard = value;
+function changeCorpRate(value, tid) {
+  if (!planCurrent.isCustom) { createNewIncomePlan() }
+  planCurrent.corp[tid] = value;
   calculateCorp();
   drawTotal();
 }
@@ -274,7 +281,7 @@ function drawGSTTable() {
   const container = d3.select("#gst-table-container");
 
   // Update rows in tbody
-//  const rowsSelection = container.select("tbody").selectAll("tr").data(data.gst.concat([{ name: "Total", total: "", take: data.totals.gst }]))
+  //  const rowsSelection = container.select("tbody").selectAll("tr").data(data.gst.concat([{ name: "Total", total: "", take: data.totals.gst }]))
   const rowsSelection = container.select("tbody").selectAll("tr").data(data.gst);
 
   rowsSelection
@@ -283,34 +290,122 @@ function drawGSTTable() {
     .merge(rowsSelection)
     .html((d) => `
          <td>${d.name}</td>
-         <td>$${(d.total/1000000).toFixed(2)}B</td>
+         <td>$${(d.total / 1000000).toFixed(2)}B</td>
          <td>${planCurrent.gst}%</td>
-         <td>$${((d.take/1000000).toFixed(2))}B</td>
+         <td>$${((d.take / 1000000).toFixed(2))}B</td>
       `)
-  
+
   const slider = d3.select("#sliderGst");
   slider.attr("value", planCurrent.gst);
-  
+
 }
 function drawCorpTable() {
   const container = d3.select("#corp-table-container");
+  const subselection = container.selectAll("div").data(data.corp);
 
-  // Update rows in tbody
-  const rowsSelection = container.select("tbody").selectAll("tr").data(data.corp);
+  subselection
+    .enter()
+    .append("div")
+    .merge(subselection)
+    .append((d) => drawTable(d))
 
-  rowsSelection
+  function drawTable(data) {
+    const tableHeader = 
+    `   <tr class="mdc-data-table__header-row">
+        <th role="columnheader" scope="col"></th>
+        <th role="columnheader" scope="col">Taxable</th>
+        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
+        </tr>
+    `
+    const subcontainer = container.append("div")
+    subcontainer.append("h4").text(data.name);
+    subcontainer
+      .append("div")
+      .attr("class", "slidecontainer")
+      .append("input")
+      .attr("type", "range")
+      .attr("min", 0)
+      .attr("max", 100)
+      .attr("step", 0.1)
+      .attr("class", "slider")
+      .attr("id", `slider-corp-${data.slug}`)
+      .attr("oninput", `changeCorpRate(this.value, '${data.slug}')`)
+
+    const subtable = subcontainer
+      .append("table")
+      .attr("id", `corp-table-${data.slug}`)
+      .attr("aria-label", data.name)
+
+    subtable
+      .append("thead")
+      .html(tableHeader)
+
+    subtable.append("tbody")
+    const subrowsSelection = subtable.select("tbody").selectAll("tr").data(data.components);
+
+    subrowsSelection
     .enter()
     .append("tr")
-    .merge(rowsSelection)
+    .merge(subrowsSelection)
     .html((d) => `
-         <td>${d.name}</td>
-         <td>$${(d.total/1000000).toFixed(2)}B</td>
-         <td>${planCurrent.corp[d.type]}%</td>
-         <td>$${((d.take/1000000).toFixed(2))}B</td>
-      `)
-  
-  const slider = d3.select("#sliderCorp");
-  slider.attr("value", planCurrent.corp.standard);
+      <td>${d.name}</td>
+      <td>$${(d.total/1000000).toFixed(2)}B</td>
+      <td>$${((d.take/1000000).toFixed(2))}B</td>
+    `)
+
+    return subcontainer.node();
+  }
+
+
+
+
+
+
+  //   <div class="slidecontainer">
+  //   <h4>Corporate</h4>
+  //   <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderCorp"
+  //     oninput="changeCorpRate(this.value)">
+  // </div>
+  // <table id="corp-table-container" aria-label="Corporate Tax info">
+  //   <thead>
+  //     <tr class="mdc-data-table__header-row">
+  //       <th role="columnheader" scope="col"></th>
+  //       <th role="columnheader" scope="col">Taxable</th>
+  //       <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Rate</th>
+  //       <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
+  //     </tr>
+  //   </thead>
+  //   <tbody>
+  //   </tbody>
+  // </table>
+  // <div class="slidecontainer">
+  //           <h4>Corporate</h4>
+  //           <input type="range" min="0" max="100" step="0.1" class="slider" id="sliderCorp" oninput="changeCorpRate(this.value)" value="28">
+  //         </div>
+
+
+  // data.corp.forEach(x => {
+  //   // Update rows in tbody
+  //   const subcontainer = container.select(`#corp-table-container-${x.name}`)
+  //   subcontainer
+  //     .append("div")
+  //     .append("input")
+  //   const rowsSelection = subcontainer.select("tbody").selectAll("tr").data(x.components);
+
+  //   rowsSelection
+  //     .enter()
+  //     .append("tr")
+  //     .merge(rowsSelection)
+  //     .html((d) => `
+  //         <td>${d.name}</td>
+  //         <td>$${(d.total/1000000).toFixed(2)}B</td>
+  //         <td>$${((d.take/1000000).toFixed(2))}B</td>
+  //       `)
+
+  //   const slider = d3.select("#sliderCorp");
+  //   slider.attr("value", planCurrent.corp.corp);
+  // });
+
 }
 
 function switchTab(id) {
@@ -322,7 +417,7 @@ function switchTab(id) {
   d3.select(id + "-button")
     .classed("active", true);
   const x = d3.select(id);
-    x.style("display", null);
+  x.style("display", null);
 }
 
 function drawTotal() {

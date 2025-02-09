@@ -29,11 +29,12 @@
             ],
             "gst": 15,
             "corp": {
-                "standard": 28,
+                "corp": 28,
                 "non-profit": 28,
                 "maori-authority": 17.5,
                 "nrwt": 15,
-                "rwt": 33
+                "rwt": 33,
+                "cgt": 0
             }
             
         },
@@ -70,11 +71,12 @@
             ],
             "gst": 15,
             "corp": {
-                "standard": 28,
+                "corp": 28,
                 "non-profit": 28,
                 "maori-authority": 17.5,
                 "nrwt": 15,
-                "rwt": 33
+                "rwt": 33,
+                "cgt": 33
             }
         }
     ]

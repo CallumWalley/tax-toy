@@ -76,24 +76,8 @@
         <div id="tab-corp" style="display: none;" class="tab">
           <em>Corporate tax is a tax on business income.</em>
           <hr>
-          <div class="slidecontainer">
-            <h4>Corporate</h4>
-            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderCorp"
-              oninput="changeCorpRate(this.value)">
+          <div id="corp-table-container">
           </div>
-          <table id="corp-table-container" aria-label="Corporate Tax info">
-            <thead>
-              <tr class="mdc-data-table__header-row">
-                <th role="columnheader" scope="col"></th>
-                <th role="columnheader" scope="col">Taxable</th>
-                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Rate</th>
-                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
-
         </div>
       </div>
     </div>

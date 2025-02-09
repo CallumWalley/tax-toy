@@ -7,29 +7,40 @@
     },
     "data": [
         {
-            "value": 60500000,
-            "name": "Gross Corporate",
-            "type": "standard"
+            "components": [
+                {"name": "Gross Corporate", "value": 60500000},
+                {"name": "Refunds Corporate", "value": -2635700}
+            ],
+            "slug": "corp",
+            "name": "Corporate",
+            "description": "A tax on net income of a corporation."
         },
         {
-            "value": -2635700,
-            "name": "Refunds Corporate",
-            "type": "standard"
-        },
-        {
-            "value": 4713000,
+            "components": [
+                {"name": "Gross", "value": 4713000}
+            ],
+            "slug": "nrwt",
             "name": "Non-resident withholding tax",
-            "type": "nrwt"
+            "description": "Tax on profits sent overseas to non-residents."
         },
         {
-            "value": 10524000,
-            "name": "Resident withholding tax on interest",
-            "type": "rwt"
+            "components": 
+            [
+                {"name": "RWT on interest", "value":10524000},
+                {"name": "RWT on dividends", "value":7639400}
+            ],
+            "slug": "rwt",
+            "name": "Resident withholding tax",
+            "description": "Tax on interest sent overseas to New Zealand residents."
+
         },
         {
-            "value": 7639400,
-            "name": "Resident withholding tax on dividends",
-            "type": "rwt"
+            "components":[
+                {"name": "gross", "value":1000000}
+            ],
+            "slug": "cgt",
+            "name": "Capital Gains Tax",
+            "description": "Tax on net profit of asset sales."
         }
     ]
 }
