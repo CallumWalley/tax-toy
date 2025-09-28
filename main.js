@@ -190,9 +190,15 @@ function createNewIncomePlan() {
 }
 function insertIncomeBracket() {
   if (!planCurrent.isCustom) { createNewIncomePlan() }
-  // Get range of second to last bracket.
-  const bracketEnd = planCurrent.brackets[planCurrent.brackets.length - 2].top;
-  planCurrent.brackets[planCurrent.brackets.length - 1].top = bracketEnd + ((xScale.domain()[1] - bracketEnd) / 2);
+
+  // If only one bracket, just add a new one at half way.
+  if (planCurrent.brackets.length === 1) {
+    planCurrent.brackets[0].top = (xScale.domain()[1]/2);
+  }else{
+    // Get range of second to last bracket.
+    const bracketEnd = planCurrent.brackets[planCurrent.brackets.length - 2].top;
+    planCurrent.brackets[planCurrent.brackets.length - 1].top = bracketEnd + ((xScale.domain()[1] - bracketEnd) / 2);
+  }
   planCurrent.brackets.push({ id: 0, top: 999999999, percent: planCurrent.brackets[planCurrent.brackets.length - 1].percent + 5 })
   planCurrent.brackets.map((v, i) => { v.id = i }); // re-index
   calculateIncomeTax();
