@@ -24,6 +24,21 @@
         <button id="tab-corp-button" class="button__tab" onclick="switchTab('#tab-corp')">
           <h3>Corporate Tax</h3>
         </button>
+        <button id="tab-cgt-button" class="button__tab" onclick="switchTab('#tab-cgt')">
+          <h3>Capital Gains Tax</h3>
+        </button>
+        <button id="tab-trust-button" class="button__tab" onclick="switchTab('#tab-trust')">
+          <h3>Trust Tax</h3>
+        </button>
+        <button id="tab-wealth-button" class="button__tab" onclick="switchTab('#tab-wealth')">
+          <h3>Wealth Tax</h3>
+        </button>
+        <button id="tab-fuelets-button" class="button__tab" onclick="switchTab('#tab-fuelets')">
+          <h3>Fuel Excise &amp; ETS</h3>
+        </button>
+        <button id="tab-land-button" class="button__tab" onclick="switchTab('#tab-land')">
+          <h3>Land Tax</h3>
+        </button>
       </div>
       <div class="tab-container">
         <div id="tab-income" class="tab">
@@ -77,6 +92,81 @@
           <em>Corporate tax is a tax on business income.</em>
           <hr>
           <div id="corp-table-container">
+          </div>
+        </div>
+        <div id="tab-cgt" style="display: none;" class="tab">
+          <em>Capital Gains Tax is a tax on the net profit from selling capital assets, such as investment property.</em>
+          <hr>
+          <div class="slidecontainer">
+            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderCgt"
+              oninput="changeFlatRate('cgt', this.value)">
+          </div>
+          <table id="cgt-table-container" aria-label="Capital Gains Tax info">
+            <thead>
+              <tr class="mdc-data-table__header-row">
+                <th role="columnheader" scope="col"></th>
+                <th role="columnheader" scope="col">Taxable</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Rate</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+        <div id="tab-trust" style="display: none;" class="tab">
+          <em>Trust tax applies to income retained by a trust and taxed at the trustee rate.</em>
+          <hr>
+          <div class="slidecontainer">
+            <input type="range" min="0" max="100" step=0.1 class="slider" id="sliderTrust"
+              oninput="changeFlatRate('trust', this.value)">
+          </div>
+          <table id="trust-table-container" aria-label="Trust Tax info">
+            <thead>
+              <tr class="mdc-data-table__header-row">
+                <th role="columnheader" scope="col"></th>
+                <th role="columnheader" scope="col">Taxable</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Rate</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+        <div id="tab-wealth" style="display: none;" class="tab">
+          <em>Wealth tax is an annual tax on net wealth (assets minus debts) above a threshold.</em>
+          <hr>
+          <div>
+            <label>Threshold: $ <input type="number" id="wealth-threshold" min="0" step="100"
+              oninput="changeWealthThreshold(this.value)"> K</label>
+            &nbsp;&nbsp;
+            <label>Rate: <input type="number" id="wealth-percent" min="0" max="100" step="0.1"
+              oninput="changeWealthPercent(this.value)"> %</label>
+          </div>
+          <table id="wealth-table-container" aria-label="Wealth Tax info">
+            <thead>
+              <tr class="mdc-data-table__header-row">
+                <th role="columnheader" scope="col">Net worth band</th>
+                <th role="columnheader" scope="col">Households</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Avg net worth</th>
+                <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+        <div id="tab-fuelets" style="display: none;" class="tab">
+          <em>Excise duty on petrol and diesel, plus revenue from the Emissions Trading Scheme (carbon pricing).</em>
+          <hr>
+          <div id="fuelets-table-container">
+          </div>
+        </div>
+        <div id="tab-land" style="display: none;" class="tab">
+          <em>Land Value Tax is an annual tax on the unimproved value of land - The Opportunities Party's signature 2026 policy.</em>
+          <hr>
+          <div id="land-table-container">
           </div>
         </div>
       </div>
