@@ -24,7 +24,7 @@
             "description": "Tax on profits sent overseas to non-residents."
         },
         {
-            "components": 
+            "components":
             [
                 {"name": "RWT on interest", "value":10524000},
                 {"name": "RWT on dividends", "value":7639400}
@@ -33,14 +33,6 @@
             "name": "Resident withholding tax",
             "description": "Tax on interest sent overseas to New Zealand residents."
 
-        },
-        {
-            "components":[
-                {"name": "gross", "value":1000000}
-            ],
-            "slug": "cgt",
-            "name": "Capital Gains Tax",
-            "description": "Tax on net profit of asset sales."
         }
     ]
 }

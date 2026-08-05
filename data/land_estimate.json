@@ -1,0 +1,26 @@
+{
+    "source": {
+        "date": "August 2026",
+        "url": "https://www.opportunity.org.nz/tax-reset",
+        "name": "Back-derived from The Opportunities Party's own 2026 Land Value Tax costing",
+        "assumptions": "No consolidated national land-value total is publicly indexed (checked QV, LINZ, Stats NZ). These 'value' figures are back-calculated from TOP's own $24bn/year revenue estimate at their stated rates (1.75% urban, 0.5% rural), assuming an 85%/15% urban/rural split of that revenue (itself an illustrative assumption, not sourced) - urban value = $20.4bn / 1.75% = $1,165,714,286K; rural value = $3.6bn / 0.5% = $720,000,000K. TOP's own $24bn figure has itself been publicly questioned (NZ Initiative) as not transparently derived. Treat this whole dataset as a rough approximation. See TODO.md."
+    },
+    "data": [
+        {
+            "components": [
+                {"name": "Land value (estimated)", "value": 1165714286}
+            ],
+            "slug": "urban",
+            "name": "Urban land",
+            "description": "Unimproved value of urban land (buildings/improvements excluded)."
+        },
+        {
+            "components": [
+                {"name": "Land value (estimated)", "value": 720000000}
+            ],
+            "slug": "rural",
+            "name": "Rural land",
+            "description": "Unimproved value of rural/farm land (buildings/improvements excluded)."
+        }
+    ]
+}

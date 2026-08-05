@@ -1,0 +1,14 @@
+{
+    "source": {
+        "date": "August 2026",
+        "url": "https://www.labour.org.nz/our-policies",
+        "name": "Back-derived from Labour Party's own 2026 CGT costing",
+        "assumptions": "No public taxable-capital-gains dataset exists for NZ. This 'value' is back-calculated from Labour's own steady-state CGT revenue projection ($969m/year) at their proposed 28% rate: 969,000,000 / 0.28 = $3,460,714,286 of taxable investment-property gains per year. This is only as credible as Labour's own costing - not an independently sourced base. See TODO.md."
+    },
+    "data": [
+        {
+            "value": 3460714,
+            "name": "Estimated taxable capital gains (investment property)"
+        }
+    ]
+}
