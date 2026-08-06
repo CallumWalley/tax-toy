@@ -10,6 +10,26 @@
                 "style.css"
             ],
             "problemMatcher": []
+        },
+        {
+            "label": "Serve",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "-m",
+                "http.server",
+                "8000"
+            ],
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Build and Serve",
+            "dependsOn": [
+                "Compile SCSS",
+                "Serve"
+            ],
+            "problemMatcher": []
         }
     ]
 }
