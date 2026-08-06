@@ -583,6 +583,7 @@ function drawMultiComponentTable(category) {
   const tablesEnter = containersEnter
     .append("table")
     .attr("id", (d) => `${category}-table-${d.slug}`)
+    .attr("class", "component-table")
     .attr("aria-label", (d) => d.name)
 
   tablesEnter
@@ -782,6 +783,20 @@ function switchTab(id) {
   x.style("display", null);
 }
 
+function switchDrawerTab(id) {
+  d3.selectAll(".drawer-tab-button").classed("active", false);
+  d3.selectAll(".drawer-tab").style("display", "none");
+  d3.select(id + "-button").classed("active", true);
+  d3.select(id).style("display", null);
+}
+
+function toggleDrawer() {
+  const drawer = d3.select("#drawer");
+  const willCollapse = !drawer.classed("collapsed");
+  drawer.classed("collapsed", willCollapse);
+  d3.select("#drawer-handle").html(willCollapse ? "&#8250;" : "&#8249;");
+}
+
 // This stacks every category in data.totals, tax and non-tax alike (ACC
 // levies, nonTaxRevenue) - by design, all Crown revenue counts here even
 // though not all of it is technically "tax". See TODO.md.
@@ -920,3 +935,5 @@ window.changeGSTRate = changeGSTRate;
 window.changeFlatRate = changeFlatRate;
 window.changeMultiComponentRate = changeMultiComponentRate;
 window.switchTab = switchTab;
+window.switchDrawerTab = switchDrawerTab;
+window.toggleDrawer = toggleDrawer;

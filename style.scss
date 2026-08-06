@@ -22,6 +22,26 @@ td {
     text-align: left;
 }
 
+// Multi-component tax tabs (corp/land/otherDirect/otherIndirect/nonTaxRevenue)
+// render one table per slug, each stacked under its own slider. Left to
+// auto-size, each table's column widths depend only on that slug's own
+// content, so "Taxable"/"Amount" drift out of alignment from one slider's
+// table to the next. Fixed, shared widths keep every such table's columns
+// lined up regardless of content length.
+.component-table {
+    table-layout: fixed;
+
+    th:first-child, td:first-child {
+        width: 45%;
+    }
+    th:nth-child(2), td:nth-child(2) {
+        width: 30%;
+    }
+    th:nth-child(3), td:nth-child(3) {
+        width: 25%;
+    }
+}
+
 .top {
     width: 100%;
 }
@@ -68,6 +88,62 @@ input.income-bracket-percent, input.income-bracket-range {
 
 .tab{
     flex-direction: column;
+}
+
+// Drawer (right-hand collapsible panel)
+.drawer {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    border: black 2px solid;
+    min-width: 0;
+}
+
+.drawer.collapsed {
+    flex-grow: 0;
+    flex-basis: auto;
+}
+
+.drawer-handle {
+    flex: 0 0 auto;
+    width: 1.5em;
+    background-color: white;
+    border: none;
+    border-right: black 2px solid;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+.drawer-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 1em;
+}
+
+.drawer.collapsed .drawer-content {
+    display: none;
+}
+
+.drawer-tab-container-buttons {
+    @extend .tab-container-buttons;
+}
+
+.drawer-tab-button {
+    @extend .button__tab;
+}
+
+.drawer-tab-button.active {
+    background-color: seashell;
+    margin-bottom: -2px;
+    border-bottom: seashell 2px solid;
+}
+
+.drawer-tab-panels {
+    @extend .tab-container;
+}
+
+.drawer-tab {
+    @extend .tab;
 }
 
 .assumptions{

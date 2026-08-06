@@ -159,8 +159,26 @@
         </div>
       </div>
     </div>
-    <div class="right">
-      <div id="total-container"></div>
+    <div class="right drawer" id="drawer">
+      <button id="drawer-handle" class="drawer-handle" onclick="toggleDrawer()" aria-label="Toggle drawer">&#8249;</button>
+      <div class="drawer-content">
+        <div class="drawer-tab-container-buttons">
+          <button id="drawer-tab-total-button" class="drawer-tab-button active" onclick="switchDrawerTab('#drawer-tab-total')">
+            <h3>Total</h3>
+          </button>
+          <button id="drawer-tab-people-button" class="drawer-tab-button" onclick="switchDrawerTab('#drawer-tab-people')">
+            <h3>People</h3>
+          </button>
+        </div>
+        <div class="drawer-tab-panels">
+          <div id="drawer-tab-total" class="drawer-tab">
+            <div id="total-container"></div>
+          </div>
+          <div id="drawer-tab-people" class="drawer-tab" style="display: none;">
+            <em>Coming soon.</em>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
