@@ -1,9 +1,18 @@
 {
-    "source": {
-        "date": "20 September 2024",
-        "url": "https://www.ird.govt.nz/-/media/project/ir/home/documents/about-us/tax-statistics---current/revenue-and-refunds/wage-and-salary/wage-and-salary-distributions-for-individuals.xlsx?modified=20241209004905&modified=20241209004905",
-        "name": "Wage and salary distributions for individuals"
-    },
+    "sources": [
+        {
+            "date": "20 September 2024",
+            "url": "https://www.ird.govt.nz/-/media/project/ir/home/documents/about-us/tax-statistics---current/revenue-and-refunds/wage-and-salary/wage-and-salary-distributions-for-individuals.xlsx?modified=20241209004905&modified=20241209004905",
+            "name": "Wage and salary distributions for individuals",
+            "assumptions": "Tax year ended 31 March 2024 column, parsed directly from the published IRD spreadsheet. avg = band Wage/salary income ($M) x 1000 / band count."
+        },
+        {
+            "date": "Year ended June 2025",
+            "url": "https://www.stats.govt.nz/information-releases/household-income-and-housing-cost-statistics-year-ended-june-2025/",
+            "name": "Household Income and Housing-Cost Statistics",
+            "assumptions": "Independently tracks individual and household income distribution, and can be used to sanity-check the IRD wage-band data above."
+        }
+    ],
     "data": [
         {
           "from": 0.001,

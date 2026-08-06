@@ -1,0 +1,34 @@
+{
+    "sources": [
+        {
+            "date": "31 March 2022",
+            "url": "https://www.stats.govt.nz/assets/Uploads/Annual-balance-sheets/Annual-balance-sheets-2022-provisional/Downloads/Annual-balance-sheets-2007-2022-provisional-table-1-all-sectors-by-years.xlsx",
+            "name": "Annual Balance Sheets 2007-2022 (provisional) - all sectors by year",
+            "assumptions": "Non-produced non-financial assets ('land') at 31 March 2022: total economy $1,713,286m, of which government $86,390m. Excluding government land (not a land-tax base) leaves $1,626,896m taxable. No urban/rural split exists in this table (households, corporate, and government sectors only), and no more recent (2023/2024) vintage has been published."
+        },
+        {
+            "date": "2026",
+            "url": "https://www.opportunity.org.nz/tax-reset",
+            "name": "The Opportunities Party - Tax Reset (Land Value Tax policy)",
+            "assumptions": "States a 1.75% urban / 0.5% rural rate and an approximate $24bn/year revenue estimate. The 85%/15% urban/rural split applied to the Stats NZ total above is derived from that revenue estimate at these rates, not independently sourced - TOP's own costing has itself been publicly questioned (NZ Initiative) as not transparently derived."
+        }
+    ],
+    "data": [
+        {
+            "components": [
+                {"name": "Land value", "value": 1382861600, "unit": "$K"}
+            ],
+            "slug": "urban",
+            "name": "Urban land",
+            "description": "Unimproved value of urban land (buildings/improvements excluded)."
+        },
+        {
+            "components": [
+                {"name": "Land value", "value": 244034400, "unit": "$K"}
+            ],
+            "slug": "rural",
+            "name": "Rural land",
+            "description": "Unimproved value of rural/farm land (buildings/improvements excluded)."
+        }
+    ]
+}

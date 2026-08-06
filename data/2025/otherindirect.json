@@ -1,0 +1,151 @@
+{
+    "sources": [
+        {
+            "date": "9 October 2025",
+            "url": "https://www.treasury.govt.nz/sites/default/files/2025-10/fsgnz-2025.pdf",
+            "name": "Financial Statements of the Government of New Zealand for the year ended 30 June 2025, Note 4: Sovereign Revenue (Other Indirect Taxation)",
+            "assumptions": "Straight Treasury accrual 'Taxation Revenue' figures for FY2025, converted from $NZDm to $K by x1000. Other customs duty ($127m), Motor vehicle fees ($287m), Approved issuer levy and cheque duty ($176m), and Energy resources levies ($16m) aren't broken out as their own tab - they remain folded into the 'other' residual in main.js. Fuel Excise and ETS were previously their own tab, merged in here to reduce single-slider tab sprawl - ETS revenue is technically booked by Treasury under 'Other Sovereign Revenue', not 'Other Indirect Taxation'. Each component's 'value' is a back-derived taxable BASE (litres, tonnes, cigarettes, km, or $ turnover) rather than raw revenue, computed as this year's revenue divided by each component's current real rate (see the other sources listed here) - this lets the slider hold a genuine rate instead of an abstract 0-100% multiplier, though it means the base is this FY2025 revenue re-expressed at today's rate, not the true FY2025 base."
+        },
+        {
+            "date": "1 January 2026",
+            "url": "https://www.customs.govt.nz/about-us/news/important-notices-archive/important-notices-archive-2025/new-excise-duty-rates-for-tobacco-products-from-1-january-2026",
+            "name": "NZ Customs - excise duty rates for tobacco products",
+            "assumptions": "$1,309.71 per 1,000 cigarettes, the standard cigarette tier (<=0.8kg tobacco/1,000 sticks). The heavier >0.8kg/1,000 tier and loose/RYO tobacco (taxed at a different rate) are ignored - a headline approximation, not the full tiered schedule."
+        },
+        {
+            "date": "1 July 2026",
+            "url": "https://www.customs.govt.nz/about-us/news/important-notices/new-excise-duty-rates-for-alcohol-from-1-july-2026",
+            "name": "NZ Customs - excise duty rates for alcohol",
+            "assumptions": "$38.999 per litre of pure alcohol, the 'beer >2.5% ABV' rate (largest single beverage category), a ~3.07% CPI-linked rise from the prior $37.836. Real rates are genuinely non-uniform by category (beer, wine, RTDs, and spirits each differ) - using one blended rate is an approximation."
+        },
+        {
+            "date": "1 July 2020",
+            "url": "https://www.nzta.govt.nz/vehicles/road-user-charges/ruc-rates-and-transaction-fees",
+            "name": "NZTA - RUC rates and transaction fees",
+            "assumptions": "$76.00 per 1,000km, the standard light diesel/petrol vehicle rate (2-axle, <=3,500kg, RUC type 1), unchanged since this date. Heavy vehicle rates vary substantially by weight and axle configuration - this applies the light-vehicle rate across all RUC-liable distance, an approximation. Light EVs and PHEVs lost their RUC exemption on 1 April 2024, so this dataset's base already includes most of their distance. The 'Exempt light EVs' checkbox on this tab simulates the pre-2024 exempt policy by subtracting an estimated EV distance instead - see main.js's EV_RUC_KM_ESTIMATE constant for that estimate's source and confidence."
+        },
+        {
+            "date": "Current",
+            "url": "https://www.ird.govt.nz/-/media/project/ir/home/documents/forms-and-guides/ir100---ir199/ir180/ir180.pdf",
+            "name": "IRD - IR180 Gaming machine duty",
+            "assumptions": "20% of GST-inclusive gaming machine profits (non-club gaming machines, the largest single gambling-duty category), under the Gaming Duties Act 1971 - a clean, uniform statutory rate, unlike the other components here."
+        },
+        {
+            "date": "1 July 2020",
+            "url": "https://www.transport.govt.nz/area-of-interest/revenue/rates-of-petrol-excise-duty-and-road-user-charges",
+            "name": "Ministry of Transport - rates of petrol excise duty and road user charges",
+            "assumptions": "70.024 cents per litre of petrol, unchanged since this date. Diesel is untaxed by excise in NZ (diesel vehicles pay RUC instead), so this rate/base covers petrol only. A previously-legislated 12c/L rise for January 2027 looks likely to be deferred or scrapped. Separately, government is progressing a full transition of all light vehicles, including petrol, from fuel excise to electronic RUC (Land Transport (Time of Use Charging) Amendment Bill, targeting 'open for business' in 2027) - if enacted, this would eventually make the fuel excise/RUC split obsolete. Neither change is modelled here, since neither has a confirmed date or mechanism yet."
+        },
+        {
+            "date": "August 2026",
+            "url": "https://www.etsauctions.govt.nz/",
+            "name": "EPA ETS auction noticeboard / secondary-market pricing",
+            "assumptions": "~$55.13/tonne CO2-e, the midpoint of the secondary-market NZU price range (~$54.65-55.60/t). The 2026 auction floor is $71/tonne, but auctions keep failing to clear since bids sit below it, so there's no single official auction price for the year. An approximation of an inherently volatile market price, not a legislated rate."
+        },
+        {
+            "date": "1 July 2026",
+            "url": "https://environment.govt.nz/what-government-is-doing/areas-of-work/waste/waste-disposal-levy/expansion/",
+            "name": "Ministry for the Environment - Waste Disposal Levy expansion",
+            "assumptions": "The Class 1 (municipal landfill) rate is $70/tonne as of this date, part of a staged increase from $50/tonne (2023) to a legislated $75/tonne (2027). Lower classes are real but different rates (construction and demolition $40/tonne; managed/controlled fill $15/tonne) - using the Class 1 rate alone as a blended representative rate is an approximation, since no per-class tonnage breakdown was available to weight them properly."
+        },
+        {
+            "date": "2024",
+            "url": "https://www.beehive.govt.nz/release/waste-levy-changes-improve-environment",
+            "name": "Beehive - Waste levy changes to improve the environment",
+            "assumptions": "Projects total annual levy revenue (all classes) rising from ~$222m to ~$257m/year once the staged rate increases are fully phased in - a projection, not a confirmed FY2024/FY2025 actual (no outturn figure was found). The taxable base above (~3.67M tonnes) is back-derived as this ~$257m projection divided by the Class 1 rate alone, so it's a rough approximation, not a precise national waste tonnage."
+        },
+        {
+            "date": "February 2019",
+            "url": "https://taxworkinggroup.govt.nz/sites/default/files/2019-03/twg-final-report-voli-feb19-v1.pdf",
+            "name": "Tax Working Group - Future of Tax: Final Report",
+            "assumptions": "Proposed a hypothetical $2/kg charge on nitrogen leaching, estimated to raise ~$270m/year - not an enacted tax, and no 2026 party proposes it (default rate is 0 in every plan). The ~135,000 tonnes N/year taxable base above is the TWG's own implied figure (revenue/rate), not an independently measured national total - no authoritative measurement of total NZ nitrogen leaching was found elsewhere."
+        }
+    ],
+    "meta": {
+        "otherIndirectResidual": 606000,
+        "evRucExemptDistanceKm": 1150
+    },
+    "data": [
+        {
+            "components": [
+                {"name": "Cigarettes cleared (stick-equivalent)", "value": 1123.15, "unit": "million cigarettes"}
+            ],
+            "slug": "tobaccoExcise",
+            "name": "Tobacco Excise",
+            "description": "Excise duty on tobacco products.",
+            "rateUnit": "$/1,000 cigarettes",
+            "rateDivisor": 1
+        },
+        {
+            "components": [
+                {"name": "Pure alcohol - domestic production", "value": 20282.58, "unit": "kL"},
+                {"name": "Pure alcohol - imports", "value": 11590.04, "unit": "kL"}
+            ],
+            "slug": "alcoholExcise",
+            "name": "Alcohol Excise",
+            "description": "Excise duty on beer, wine, and spirits.",
+            "rateUnit": "$/L pure alcohol",
+            "rateDivisor": 1
+        },
+        {
+            "components": [
+                {"name": "RUC-liable distance travelled", "value": 26789.47, "unit": "million km"}
+            ],
+            "slug": "roadUserCharges",
+            "name": "Road User Charges",
+            "description": "Distance-based charges on diesel and other non-petrol-excise vehicles (including most EVs).",
+            "rateUnit": "$/1,000km",
+            "rateDivisor": 1
+        },
+        {
+            "components": [
+                {"name": "Gaming machine profit, GST-incl.", "value": 1525000, "unit": "$K"}
+            ],
+            "slug": "gamingDuty",
+            "name": "Gaming Duty",
+            "description": "Duty on gaming machines, casinos, and Lotto/TAB betting.",
+            "rateUnit": "%",
+            "rateDivisor": 100
+        },
+        {
+            "components": [
+                {"name": "Petrol sold", "value": 2849023.19, "unit": "kL"}
+            ],
+            "slug": "fuelExcise",
+            "name": "Fuel Excise Duty",
+            "description": "Excise duty on petrol and diesel.",
+            "rateUnit": "¢/L",
+            "rateDivisor": 100
+        },
+        {
+            "components": [
+                {"name": "NZUs surrendered", "value": 32178.48, "unit": "kt CO2-e"}
+            ],
+            "slug": "ets",
+            "name": "Emissions Trading Scheme",
+            "description": "Revenue from the NZ Emissions Trading Scheme (carbon unit auctions and surrender).",
+            "rateUnit": "$/tonne CO2-e",
+            "rateDivisor": 1
+        },
+        {
+            "components": [
+                {"name": "Waste disposed at levied facilities", "value": 3671.43, "unit": "kt"}
+            ],
+            "slug": "wasteLevy",
+            "name": "Waste Disposal Levy",
+            "description": "Levy on waste disposed at landfill, using the Class 1 (municipal) rate as a representative blended rate.",
+            "rateUnit": "$/tonne",
+            "rateDivisor": 1
+        },
+        {
+            "components": [
+                {"name": "Nitrogen leached (TWG's implied national estimate)", "value": 135000, "unit": "t N"}
+            ],
+            "slug": "nitrateTax",
+            "name": "Nitrate Leaching Charge",
+            "description": "A hypothetical charge on agricultural nitrogen leaching proposed by the 2019 Tax Working Group - not a current tax.",
+            "rateUnit": "$/kg N",
+            "rateDivisor": 1
+        }
+    ]
+}

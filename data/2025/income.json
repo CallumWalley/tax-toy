@@ -1,10 +1,18 @@
 {
-    "source": {
-        "date": "6 October 2025",
-        "url": "https://www.ird.govt.nz/-/media/project/ir/home/documents/about-us/tax-statistics---current/revenue-and-refunds/wage-and-salary/wage-and-salary-statistics/wage-and-salary-distributions-for-individuals.xlsx?modified=20251005233259",
-        "name": "Wage and salary distributions for individuals",
-        "assumptions": "Tax year ended 31 March 2025 column, parsed directly from the published IRD spreadsheet. avg = band Wage/salary income ($M) x 1000 / band count. Band-count sum (2,865,290) is 60 higher than the sheet's own Total row (2,865,230, ~0.002% difference) - an IRD source rounding artifact, not a transcription error. Top band (\"Over $1 million\") reuses the prior years' arbitrary to:1050 cap for chart-width purposes only; it has no effect on tax calculations, which use avg."
-    },
+    "sources": [
+        {
+            "date": "6 October 2025",
+            "url": "https://www.ird.govt.nz/-/media/project/ir/home/documents/about-us/tax-statistics---current/revenue-and-refunds/wage-and-salary/wage-and-salary-statistics/wage-and-salary-distributions-for-individuals.xlsx?modified=20251005233259",
+            "name": "Wage and salary distributions for individuals",
+            "assumptions": "Tax year ended 31 March 2025 column, parsed directly from the published IRD spreadsheet."
+        },
+        {
+            "date": "Year ended June 2025",
+            "url": "https://www.stats.govt.nz/information-releases/household-income-and-housing-cost-statistics-year-ended-june-2025/",
+            "name": "Household Income and Housing-Cost Statistics",
+            "assumptions": "Independently tracks individual and household income distribution, and can be used to sanity-check the IRD wage-band data above."
+        }
+    ],
     "data": [
         {
             "from": 0.001,

@@ -1,6 +1,75 @@
 {
     "plans": [
         {
+            "name": "2010 [National]",
+            "date": "2010",
+            "proposer": "National Party (5th National Government)",
+            "link": "https://www.calculate.co.nz/reference/nz-income-tax-history.php",
+            "brackets": [
+                { "top": 14, "percent": 10.5 },
+                { "top": 48, "percent": 17.5 },
+                { "top": 70, "percent": 30 },
+                { "top": 999999999, "percent": 33 }
+            ],
+            "gst": 15,
+            "corp": { "corp": 28, "corpLarge": 28, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 999999999, "percent": 0 }
+            ],
+            "land": { "urban": 0, "rural": 0 },
+            "otherDirect": { "cgt": 0, "trust": 33, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
+        },
+        {
+            "name": "2021 [Labour]",
+            "date": "2021",
+            "proposer": "Labour Party (6th Labour Government)",
+            "link": "https://www.calculate.co.nz/reference/nz-income-tax-history.php",
+            "brackets": [
+                { "top": 14, "percent": 10.5 },
+                { "top": 48, "percent": 17.5 },
+                { "top": 70, "percent": 30 },
+                { "top": 180, "percent": 33 },
+                { "top": 999999999, "percent": 39 }
+            ],
+            "gst": 15,
+            "corp": { "corp": 28, "corpLarge": 28, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 999999999, "percent": 0 }
+            ],
+            "land": { "urban": 0, "rural": 0 },
+            "otherDirect": { "cgt": 0, "trust": 33, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
+        },
+        {
+            "name": "2023 [Proposed - Greens]",
+            "date": "2023",
+            "proposer": "Green Party",
+            "link": "",
+            "brackets": [
+                { "top": 10, "percent": 0 },
+                { "top": 15.6, "percent": 10.5 },
+                { "top": 53.5, "percent": 17.5 },
+                { "top": 78.1, "percent": 30 },
+                { "top": 180, "percent": 33 },
+                { "top": 999999999, "percent": 45 }
+            ],
+            "gst": 15,
+            "corp": { "corp": 28, "corpLarge": 28, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 999999999, "percent": 0 }
+            ],
+            "land": { "urban": 0, "rural": 0 },
+            "otherDirect": { "cgt": 33, "trust": 39, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
+        },
+        {
             "name": "31 July 2024 [Current - National]",
             "date": "2025",
             "proposer": "National Party",
@@ -13,18 +82,15 @@
                 { "top": 999999999, "percent": 39 }
             ],
             "gst": 15,
-            "corp": {
-                "corp": 28,
-                "non-profit": 28,
-                "maori-authority": 17.5,
-                "nrwt": 15,
-                "rwt": 33
-            },
-            "cgt": 0,
-            "trust": 39,
-            "wealth": { "threshold": 999999999, "percent": 0 },
+            "corp": { "corp": 28, "corpLarge": 28, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 999999999, "percent": 0 }
+            ],
             "land": { "urban": 0, "rural": 0 },
-            "fuelEts": { "fuelExcise": 100, "ets": 100 }
+            "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
         },
         {
             "name": "2026 [Proposed - Labour]",
@@ -39,18 +105,15 @@
                 { "top": 999999999, "percent": 39 }
             ],
             "gst": 15,
-            "corp": {
-                "corp": 28,
-                "non-profit": 28,
-                "maori-authority": 17.5,
-                "nrwt": 15,
-                "rwt": 33
-            },
-            "cgt": 28,
-            "trust": 39,
-            "wealth": { "threshold": 999999999, "percent": 0 },
+            "corp": { "corp": 28, "corpLarge": 28, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 999999999, "percent": 0 }
+            ],
             "land": { "urban": 0, "rural": 0 },
-            "fuelEts": { "fuelExcise": 100, "ets": 100 }
+            "otherDirect": { "cgt": 28, "trust": 39, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
         },
         {
             "name": "2026 [Proposed - Greens]",
@@ -67,41 +130,36 @@
                 { "top": 999999999, "percent": 45 }
             ],
             "gst": 15,
-            "corp": {
-                "corp": 28,
-                "non-profit": 28,
-                "maori-authority": 17.5,
-                "nrwt": 15,
-                "rwt": 33
-            },
-            "cgt": 0,
-            "trust": 39,
-            "wealth": { "threshold": 10000, "percent": 2.5 },
+            "corp": { "corp": 28, "corpLarge": 33, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 10000, "percent": 0 },
+                { "top": 999999999, "percent": 2.5 }
+            ],
             "land": { "urban": 0, "rural": 0 },
-            "fuelEts": { "fuelExcise": 100, "ets": 100 }
+            "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
         },
         {
             "name": "2026 [Proposed - ACT]",
             "date": "2026",
             "proposer": "ACT New Zealand",
-            "link": "https://www.act.org.nz/act_challenges_other_parties_to_vote_for_meaningful_tax_cuts",
+            "link": "https://www.act.org.nz/two_rates_of_tax",
             "brackets": [
-                { "top": 180, "percent": 30 },
-                { "top": 999999999, "percent": 33 }
+                { "top": 70, "percent": 17.5 },
+                { "top": 999999999, "percent": 28 }
             ],
             "gst": 15,
-            "corp": {
-                "corp": 28,
-                "non-profit": 28,
-                "maori-authority": 17.5,
-                "nrwt": 15,
-                "rwt": 33
-            },
-            "cgt": 0,
-            "trust": 39,
-            "wealth": { "threshold": 999999999, "percent": 0 },
+            "corp": { "corp": 28, "corpLarge": 28, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 999999999, "percent": 0 }
+            ],
             "land": { "urban": 0, "rural": 0 },
-            "fuelEts": { "fuelExcise": 100, "ets": 100 }
+            "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
         },
         {
             "name": "2026 [Proposed - NZ First]",
@@ -116,18 +174,15 @@
                 { "top": 999999999, "percent": 39 }
             ],
             "gst": 15,
-            "corp": {
-                "corp": 28,
-                "non-profit": 28,
-                "maori-authority": 17.5,
-                "nrwt": 15,
-                "rwt": 33
-            },
-            "cgt": 0,
-            "trust": 39,
-            "wealth": { "threshold": 999999999, "percent": 0 },
+            "corp": { "corp": 28, "corpLarge": 28, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 999999999, "percent": 0 }
+            ],
             "land": { "urban": 0, "rural": 0 },
-            "fuelEts": { "fuelExcise": 100, "ets": 100 }
+            "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
         },
         {
             "name": "2026 [Proposed - TOP]",
@@ -140,18 +195,15 @@
                 { "top": 999999999, "percent": 39 }
             ],
             "gst": 15,
-            "corp": {
-                "corp": 28,
-                "non-profit": 28,
-                "maori-authority": 17.5,
-                "nrwt": 15,
-                "rwt": 33
-            },
-            "cgt": 0,
-            "trust": 39,
-            "wealth": { "threshold": 999999999, "percent": 0 },
+            "corp": { "corp": 28, "corpLarge": 28, "non-profit": 28, "maori-authority": 17.5, "nrwt": 15, "rwt": 33 },
+            "wealthBrackets": [
+                { "top": 999999999, "percent": 0 }
+            ],
             "land": { "urban": 1.75, "rural": 0.5 },
-            "fuelEts": { "fuelExcise": 100, "ets": 100 }
+            "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
+            "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
+            "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
+            "evRucExempt": false
         }
     ]
 }

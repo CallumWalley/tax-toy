@@ -2,44 +2,74 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 async function loadDataset(path) {
-  return (await d3.json(path)).data;
+  const raw = await d3.json(path);
+  return { data: raw.data, sources: raw.sources, meta: raw.meta };
 }
-
-// Datasets that have more than one year available are keyed by year;
-// datasets with only a single vintage (or a modelled/estimated base rather
-// than an annual release) keep whatever key they were given - see TODO.md
-// for why each of these can't yet go further than what's loaded here.
 const datasets = {
   income: {
-    2024: await loadDataset("./data/income_2024.json"),
-    2025: await loadDataset("./data/income_2025.json"),
+    2024: await loadDataset("./data/2024/income.json"),
+    2025: await loadDataset("./data/2025/income.json"),
   },
   gst: {
-    2024: await loadDataset("./data/gst_2024.json"),
-    2025: await loadDataset("./data/gst_2025.json"),
+    2024: await loadDataset("./data/2024/gst.json"),
+    2025: await loadDataset("./data/2025/gst.json"),
   },
   corp: {
-    2024: await loadDataset("./data/corp_2024.json"),
-    2025: await loadDataset("./data/corp_2025.json"),
+    2024: await loadDataset("./data/2024/corp.json"),
+    2025: await loadDataset("./data/2025/corp.json"),
   },
-  fuelEts: {
-    2024: await loadDataset("./data/fuelets_2024.json"),
-    2025: await loadDataset("./data/fuelets_2025.json"),
+  wealth: {
+    2024: await loadDataset("./data/2024/wealth.json"),
+    2025: await loadDataset("./data/2025/wealth.json"),
   },
-  trust: { 2024: await loadDataset("./data/trust_2024.json") },
-  wealth: { 2024: await loadDataset("./data/wealth_2024.json") },
-  cgt: { estimate: await loadDataset("./data/cgt_estimate.json") },
-  land: { estimate: await loadDataset("./data/land_estimate.json") },
+  land: {
+    2024: await loadDataset("./data/2024/land.json"),
+    2025: await loadDataset("./data/2025/land.json"),
+  },
+  otherDirect: {
+    2024: await loadDataset("./data/2024/otherdirect.json"),
+    2025: await loadDataset("./data/2025/otherdirect.json"),
+  },
+  otherIndirect: {
+    2024: await loadDataset("./data/2024/otherindirect.json"),
+    2025: await loadDataset("./data/2025/otherindirect.json"),
+  },
+  nonTaxRevenue: {
+    2024: await loadDataset("./data/2024/nontaxrevenue.json"),
+    2025: await loadDataset("./data/2025/nontaxrevenue.json"),
+  },
 };
 
 const availableYears = [2024, 2025];
 let currentYear = 2025;
 
-// Resolves the dataset for `type` at the currently selected year, falling
-// back to whatever single vintage that type has (trust/wealth/cgt/land).
-function datasetFor(type) {
+function yearEntryFor(type) {
   const years = datasets[type];
-  return years[currentYear] ?? years[Object.keys(years)[0]];
+  return years[currentYear];
+}
+function datasetFor(type) {
+  return yearEntryFor(type).data;
+}
+function sourcesFor(type) {
+  return yearEntryFor(type).sources;
+}
+function metaFor(type) {
+  return yearEntryFor(type).meta ?? {};
+}
+
+// Renders a dataset's recorded methodology/caveats into the given tab's
+// assumptions box - called from each calculate*() alongside its draw*(). A
+// dataset can cite more than one source (e.g. a figure cross-checked against
+// a second publication) - each gets its own paragraph, in the order listed.
+function drawAssumptions(containerId, type) {
+  const paragraphs = d3.select(containerId)
+    .selectAll("p")
+    .data(sourcesFor(type));
+  paragraphs.exit().remove();
+  paragraphs.enter()
+    .append("p")
+    .merge(paragraphs)
+    .text(d => d.assumptions);
 }
 
 const plans = (await d3.json("./data/tax_plans.json")).plans;
@@ -49,31 +79,28 @@ plans.forEach(a => {
   a.brackets.forEach((b, i) => {
     b.id = i;
   })
+  a.wealthBrackets.forEach((b, i) => {
+    b.id = i;
+  })
 });
 
-let planCurrent = plans[0];
-
-// "other" indirect taxation (from Treasury's FY2024 financial statements)
-// substantially overlaps with what we now model explicitly as Fuel Excise
-// Duty + ETS revenue below - it's been reduced by that FY2024 accrual total
-// to avoid double-counting the same revenue in the stacked total chart. This
-// is an approximation (receipts vs accrual basis, and it doesn't flex with
-// the year selector) - see TODO.md.
-const otherTaxBaseline = 7279000 - (2002000 + 1690000);
+let planCurrent = plans[3];
 
 let data = {
-  totals: { income: 0, gst: 0, corporate: 0, other: otherTaxBaseline, cgt: 0, trust: 0, wealth: 0, land: 0, fuelEts: 0 },
+  totals: {
+    income: 0, gst: 0, corp: 0, other: metaFor("otherIndirect").otherIndirectResidual ?? 0,
+    wealth: 0, land: 0, otherDirect: 0, otherIndirect: 0,
+    nonTaxRevenue: 0
+  },
   income: { brackets: [] },
   gst: [],
   corp: [],
-  cgt: [],
-  trust: [],
-  wealth: [],
+  wealth: { brackets: [] },
   land: [],
-  fuelEts: []
+  otherDirect: [],
+  otherIndirect: [],
+  nonTaxRevenue: []
 };
-
-//https://www.treasury.govt.nz/sites/default/files/2024-10/fsgnz-2024.pdf
 
 // Main plot window.
 const width = 800;
@@ -84,50 +111,100 @@ const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"
 
 const handleWidth = 12;
 
-const incomePlot = d3
-  .select("#plot-container")
-  .append("svg")
-  .attr("width", width + margin * 2)
-  .attr("height", height + margin * 2)
-  .append("g")
-  .attr("transform", `translate(${margin}, ${margin})`);
+// Bracket tax types: a draggable-SVG-chart + editable table over a
+// progressive bracket ladder (top + percent per bracket, bottom of each
+// bracket implied by the previous bracket's top).
+function createBracketPlot(type, containerId, xDomain) {
+  const plot = d3
+    .select(containerId)
+    .append("svg")
+    .attr("width", width + margin * 2)
+    .attr("height", height + margin * 2)
+    .append("g")
+    .attr("transform", `translate(${margin}, ${margin})`);
 
-//d3.max(dataset, d => d.to)
-// Create scales for the chart
-const xScale = d3.scaleLinear().domain([0, 300]).range([0, width]);
-const yScaleRate = d3.scaleLinear().domain([0, 100]).range([height, 0]);
-const yScaleCount = d3.scaleLinear().domain([0, d3.max(datasetFor("income"), d => d.count)]).range([height, 0]);
+  const xScale = d3.scaleLinear().domain(xDomain).range([0, width]);
+  const yScaleRate = d3.scaleLinear().domain([0, 100]).range([height, 0]);
+  const yScaleCount = d3.scaleLinear().domain([0, 1]).range([height, 0]);
 
-// Add axes
-incomePlot.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale));
-incomePlot.append("g").attr("class", "y-axis").call(d3.axisLeft(yScaleRate));
-const yAxisCount = incomePlot.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(yScaleCount));
+  plot.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale));
+  plot.append("g").attr("class", "y-axis").call(d3.axisLeft(yScaleRate));
+  const yAxisCount = plot.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(yScaleCount));
 
-// Plot income data
-const incomeDataContainer = incomePlot.append("g").attr("id", "income-container");
+  const dataContainer = plot.append("g").attr("class", "bracket-data-container");
 
-function drawIncomeHistogram() {
-  // Redraw the background wage/salary distribution bars for the current year.
-  const dataset = datasetFor("income");
-  yScaleCount.domain([0, d3.max(dataset, d => d.count)]);
+  // Three persistent layers, appended once in this fixed order, so a newly
+  // entered bracket's handle always paints above every bracket's rect -
+  // rather than wherever it happens to land in append order. drawBracketChart
+  // draws within these layers instead of nesting each bracket's rect/handles
+  // in their own <g>, which let a later bracket's rect visually and
+  // hit-test-wise cover an earlier bracket's shared-boundary handle.
+  const rectLayer = plot.append("g").attr("class", "bracket-rect-layer");
+  const topHandleLayer = plot.append("g").attr("class", "bracket-tophandle-layer");
+  const rightHandleLayer = plot.append("g").attr("class", "bracket-righthandle-layer");
+
+  // Created once per plot rather than on every drawBracketChart call - the
+  // closures only capture `type`, which is fixed for this plot's lifetime.
+  const dragUp = d3.drag().on("drag", function (event, d) {
+    changeBracketPercent(type, d.id, yScaleRate.invert(event.y));
+  });
+  const dragRight = d3.drag().on("drag", function (event, d) {
+    changeBracketRange(type, d.id, xScale.invert(event.x));
+  });
+
+  return {
+    plot, xScale, yScaleRate, yScaleCount, yAxisCount, dataContainer,
+    rectLayer, topHandleLayer, rightHandleLayer, dragUp, dragRight,
+  };
+}
+
+// floor: implied bottom of bracket 0 (0 for income; wealth data includes
+// negative net worth, so its ladder starts below zero)
+const bracketConfig = {
+  income: {
+    datasetType: "income", bracketsField: "brackets", plotContainerId: "#plot-container",
+    tableContainerId: "#income-bracket-table-container", addButtonId: "#income-bracket-add",
+    assumptionsId: "#income-assumptions", xDomain: [0, 300], floor: 0, maxBrackets: 11, unitLabel: "K",
+  },
+  wealth: {
+    datasetType: "wealth", bracketsField: "wealthBrackets", plotContainerId: "#wealth-plot-container",
+    tableContainerId: "#wealth-bracket-table-container", addButtonId: "#wealth-bracket-add",
+    assumptionsId: "#wealth-assumptions", xDomain: [-500, 12000], floor: -500, maxBrackets: 8, unitLabel: "K",
+  },
+};
+
+const bracketPlots = {};
+Object.entries(bracketConfig).forEach(([type, cfg]) => {
+  bracketPlots[type] = createBracketPlot(type, cfg.plotContainerId, cfg.xDomain);
+});
+
+function drawBracketHistogram(type) {
+  // Redraw the background distribution bars for the current year.
+  const { datasetType } = bracketConfig[type];
+  const { xScale, yScaleCount, yAxisCount, dataContainer } = bracketPlots[type];
+  const dataset = datasetFor(datasetType);
+  // Domain is the max *density* (count/width), matching what's actually
+  // plotted below - using raw count here would badly under-scale bars for
+  // datasets with uneven bin widths (e.g. wealth's $50K-$8.5M-wide bands).
+  yScaleCount.domain([0, d3.max(dataset, d => d.count / (d.to - d.from))]);
   yAxisCount.call(d3.axisRight(yScaleCount));
 
-  const incomeDataSelection = incomeDataContainer
+  const dataSelection = dataContainer
     .selectAll(".bar")
     .data(dataset);
 
-  incomeDataSelection
+  dataSelection
     .enter()
     .append("rect")
     .attr("class", "bar")
-    .merge(incomeDataSelection)
+    .merge(dataSelection)
     .attr("x", d => xScale(d.from))
     .attr("y", d => yScaleCount(d.count / (d.to - d.from)))
-    .attr("width", d => xScale(d.to - d.from))
+    .attr("width", d => xScale(d.to) - xScale(d.from))
     .attr("height", d => height - yScaleCount(d.count / (d.to - d.from)))
     .attr("fill", "lightblue");
 
-  incomeDataSelection.exit().remove();
+  dataSelection.exit().remove();
 }
 
 // Draw total plot
@@ -171,16 +248,15 @@ function drawDropdown() {
   options.exit().remove();
 }
 
-// Draw dataset-year dropdown (a plain sibling of the plan dropdown, matching
-// the existing flex-row layout of #dropdown-container rather than nesting a
-// second flex context inside it).
+// Draw dataset-year dropdown
 dropdownContainer.append("h2").text("Data year:");
 const yearDropdown = dropdownContainer
   .append("select")
   .attr("id", "year-dropdown")
   .on("change", function () {
     currentYear = parseInt(this.value, 10);
-    drawIncomeHistogram();
+    drawBracketHistogram("income");
+    drawBracketHistogram("wealth");
     recalculateAll();
   });
 
@@ -198,40 +274,73 @@ function drawYearDropdown() {
   options.exit().remove();
 }
 
-function calculateIncomeTax() {
-  // Should be called whenever tax brackets changed.
-  const incomeDataset = datasetFor("income");
+function calculateBracketTax(type) {
+  // Should be called whenever this type's tax brackets changed.
+  const { datasetType, bracketsField, floor, assumptionsId } = bracketConfig[type];
+  const dataset = datasetFor(datasetType);
+  const brackets = planCurrent[bracketsField];
   let cumulative = 0;
-  data.income.brackets = [];
-  for (let i = 0; i < planCurrent.brackets.length; i++) {
+  const bracketResults = [];
+  for (let i = 0; i < brackets.length; i++) {
     // Find bottom of this bracket.
-    let from = (i == 0) ? 0 : planCurrent.brackets[i - 1].top;
-    let maxTaxable = planCurrent.brackets[i].top * planCurrent.brackets[i].percent / 100;
-    // Ignore entries under this bracket and sum max taxable amount otherwise.
-    const { count, take } = incomeDataset.filter(e => (e.from > from)).reduce((a, b) => {
+    let from = (i == 0) ? floor : brackets[i - 1].top;
+    // Ignore entries under this bracket and sum taxable amount otherwise.
+    const { count, take } = dataset.filter(e => (e.from >= from)).reduce((a, b) => {
       a.count += b.count;
-      a.take += b.count * ((planCurrent.brackets[i].percent / 100) * (Math.min(b.avg, planCurrent.brackets[i].top) - (i == 0 ? 0 : planCurrent.brackets[i - 1].top)));
+      a.take += b.count * ((brackets[i].percent / 100) * (Math.min(b.avg, brackets[i].top) - from));
       return a;
     }, { count: 0, take: 0 })
     cumulative += take;
-    data.income.brackets.push({ ref: planCurrent.brackets[i], max: maxTaxable, count: count, take: take })
+    bracketResults.push({ count, take })
   }
-  data.totals.income = cumulative;
-  drawIncomeBracket();
-  drawIncomeTable();
+  data[type].brackets = bracketResults;
+  data.totals[type] = cumulative;
+  drawBracketChart(type);
+  drawBracketTable(type);
+  drawAssumptions(assumptionsId, datasetType);
 }
 
-// --- Flat-rate tax types: a single rate applied against a dataset of named
-// values (GST, Capital Gains Tax, Trust tax). CGT/Trust reuse the exact
-// mechanics GST already had; only the config below differs per type.
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+// Draws evenly-spaced tick marks under a slider, spaced every tickStep
+// between min and max.
+function renderSliderTicks(tickContainerSelection, min, max, tickStep) {
+  const ticks = [];
+  for (let t = min; t <= max + 1e-6; t += tickStep) {
+    ticks.push(Math.round(t * 100) / 100);
+  }
+  const marks = tickContainerSelection.selectAll("span").data(ticks);
+  marks.exit().remove();
+  marks.enter().append("span").merge(marks).attr("title", (d) => d);
+}
+
+// Applies a slider's min/max/step/value, its tick marks, and its live-value
+// output text - the shared setup flat-rate and multi-component sliders both
+// need. `range.unit` is absent for flat-rate sliders (always "%", one
+// decimal place); multi-component sliders always carry a unit (two decimal
+// places, with a space before non-% units).
+function applySliderRange(sliderSel, ticksSel, outputSel, range, value) {
+  const { min, max, step, tickStep, unit } = range;
+  sliderSel.attr("min", min).attr("max", max).attr("step", step);
+  sliderSel.property("value", value);
+  renderSliderTicks(ticksSel, min, max, tickStep);
+  const formatted = unit === undefined ? (+value).toFixed(1) : (+value).toFixed(2);
+  outputSel.text(unit === undefined || unit === "%" ? `${formatted}%` : `${formatted} ${unit}`);
+}
+
+// Flat-rate tax types: a single rate applied against a dataset of named
+// values.
 const flatRateConfig = {
-  gst: { datasetType: "gst", containerId: "#gst-table-container", sliderId: "#sliderGst", rateField: "gst" },
-  cgt: { datasetType: "cgt", containerId: "#cgt-table-container", sliderId: "#sliderCgt", rateField: "cgt" },
-  trust: { datasetType: "trust", containerId: "#trust-table-container", sliderId: "#sliderTrust", rateField: "trust" },
+  gst: {
+    datasetType: "gst", containerId: "#gst-table-container", sliderId: "#sliderGst", rateField: "gst", assumptionsId: "#gst-assumptions",
+    sliderLabel: "GST rate", min: 0, max: 25, step: 0.1, tickStep: 5,
+  },
 };
 
 function calculateFlatRateTax(category) {
-  const { datasetType, rateField } = flatRateConfig[category];
+  const { datasetType, rateField, assumptionsId } = flatRateConfig[category];
   const dataset = datasetFor(datasetType);
   const rate = planCurrent[rateField];
 
@@ -245,10 +354,12 @@ function calculateFlatRateTax(category) {
   data[category] = items;
   data.totals[category] = cumulativeTake;
   drawFlatRateTable(category);
+  drawAssumptions(assumptionsId, datasetType);
 }
 
 function drawFlatRateTable(category) {
-  const { containerId, sliderId, rateField } = flatRateConfig[category];
+  const { containerId, sliderId, rateField, min, max, step, tickStep } = flatRateConfig[category];
+  const range = { min, max, step, tickStep };
 
   const rowsSelection = d3.select(containerId).select("tbody").selectAll("tr").data(data[category]);
 
@@ -258,49 +369,143 @@ function drawFlatRateTable(category) {
     .merge(rowsSelection)
     .html((d) => `
          <td>${d.name}</td>
-         <td>$${(d.total / 1000000).toFixed(2)}B</td>
+         <td>${formatBillions(d.total)}</td>
          <td>${planCurrent[rateField]}%</td>
-         <td>$${((d.take / 1000000).toFixed(2))}B</td>
+         <td>${formatBillions(d.take)}</td>
       `)
 
   rowsSelection.exit().remove();
 
-  const slider = d3.select(sliderId);
-  slider.attr("value", planCurrent[rateField]);
+  applySliderRange(d3.select(sliderId), d3.select(`${sliderId}-ticks`), d3.select(`${sliderId}-value`), range, planCurrent[rateField]);
 }
 
 function changeFlatRate(category, value) {
-  if (!planCurrent.isCustom) { createNewIncomePlan() }
-  planCurrent[flatRateConfig[category].rateField] = Math.max(0, Math.min(100, parseFloat(value)));
+  ensureCustomPlan();
+  planCurrent[flatRateConfig[category].rateField] = clamp(parseFloat(value), 0, 100);
   calculateFlatRateTax(category);
   drawTotal();
 }
 
 const calculateGST = () => calculateFlatRateTax("gst");
-const calculateCGT = () => calculateFlatRateTax("cgt");
-const calculateTrust = () => calculateFlatRateTax("trust");
 
-// --- Multi-component tax types: several named/independently-rated
-// categories, each with its own dataset "slug" (Corporate tax, Land tax,
-// Fuel Excise & ETS). Land/Fuel-ETS reuse the exact mechanics Corp already
-// had; only the config below differs per type.
+// Multi-component tax types: several named/independently-rated
+// categories, each with its own dataset "slug".
 const multiComponentConfig = {
-  corp: { datasetType: "corp", containerId: "#corp-table-container" },
-  land: { datasetType: "land", containerId: "#land-table-container" },
-  fuelEts: { datasetType: "fuelEts", containerId: "#fuelets-table-container" },
+  corp: {
+    datasetType: "corp", containerId: "#corp-table-container", assumptionsId: "#corp-assumptions",
+    sliderLabel: "Rate", sliderDefaults: { unit: "%", min: 0, max: 50, step: 0.1, tickStep: 10 },
+  },
+  land: {
+    datasetType: "land", containerId: "#land-table-container", assumptionsId: "#land-assumptions",
+    sliderLabel: "Rate", sliderDefaults: { unit: "%", min: 0, max: 5, step: 0.1, tickStep: 1 },
+  },
+  otherDirect: {
+    datasetType: "otherDirect", containerId: "#otherdirect-table-container", assumptionsId: "#otherdirect-assumptions",
+    sliderLabel: "Rate", sliderDefaults: { unit: "%", min: 0, max: 50, step: 0.1, tickStep: 10 },
+    sliderOverrides: { fbt: { max: 100, tickStep: 20 } },
+  },
+  otherIndirect: {
+    datasetType: "otherIndirect", containerId: "#otherindirect-table-container", assumptionsId: "#otherindirect-assumptions",
+    sliderLabel: "Rate", sliderDefaults: { unit: "%", min: 0, max: 100, step: 1, tickStep: 20 },
+    sliderOverrides: {
+      tobaccoExcise: { label: "Excise rate", unit: "$/1,000 cigarettes", min: 0, max: 3000, step: 10, tickStep: 500 },
+      alcoholExcise: { label: "Excise rate", unit: "$/L pure alcohol", min: 0, max: 100, step: 0.5, tickStep: 20 },
+      roadUserCharges: { label: "RUC rate", unit: "$/1,000km", min: 0, max: 200, step: 1, tickStep: 25 },
+      gamingDuty: { label: "Duty rate", unit: "%", min: 0, max: 50, step: 0.1, tickStep: 10 },
+      fuelExcise: { label: "Excise rate", unit: "¢/L", min: 0, max: 150, step: 0.5, tickStep: 25 },
+      ets: { label: "Carbon price", unit: "$/tonne CO2-e", min: 0, max: 250, step: 1, tickStep: 50 },
+      wasteLevy: { label: "Levy rate", unit: "$/tonne", min: 0, max: 300, step: 5, tickStep: 50 },
+      nitrateTax: { label: "Charge rate", unit: "$/kg N", min: 0, max: 10, step: 0.1, tickStep: 2 },
+    },
+    // Lets a slug's taxable base be adjusted before tax is applied, rather
+    // than just its rate - used by the "Exempt light EVs" checkbox to
+    // subtract EV_RUC_KM_ESTIMATE from the RUC base without a special case
+    // in calculateMultiComponentTax itself.
+    baseAdjustments: {
+      roadUserCharges: (value) => planCurrent.evRucExempt ? Math.max(0, value - (metaFor("otherIndirect").evRucExemptDistanceKm ?? 0)) : value,
+    },
+    // Per-slug checkbox controls, rendered under that slug's own header by
+    // drawMultiComponentTable rather than bolted onto the tab generically -
+    // any future modifier belongs here, filed under the slug it affects.
+    modifiers: {
+      roadUserCharges: [{
+        id: "ev-ruc-exempt",
+        label: "Exempt light EVs (pre-1 Apr 2024 policy - EVs currently pay RUC like other vehicles)",
+        get: () => planCurrent.evRucExempt,
+        set: (checked) => changeEvRucExemption(checked),
+      }],
+    },
+  },
+  nonTaxRevenue: {
+    datasetType: "nonTaxRevenue", containerId: "#nontaxrevenue-table-container", assumptionsId: "#nontaxrevenue-assumptions",
+    sliderLabel: "Rate", sliderDefaults: { unit: "%", min: 0, max: 100, step: 1, tickStep: 20 },
+    sliderOverrides: {
+      earnerLevy: { label: "Levy rate", unit: "%", min: 0, max: 5, step: 0.01, tickStep: 1 },
+      workLevy: { label: "Levy rate", unit: "%", min: 0, max: 5, step: 0.01, tickStep: 1 },
+      mvLevy: { label: "Levy rate", unit: "$/vehicle", min: 0, max: 300, step: 1, tickStep: 50 },
+    },
+  },
 };
 
+function sliderRangeFor(category, slug) {
+  const cfg = multiComponentConfig[category];
+  return { label: cfg.sliderLabel, ...cfg.sliderDefaults, ...(cfg.sliderOverrides?.[slug] ?? {}) };
+}
+
+function formatBillions(value) {
+  return `$${(value / 1000000).toFixed(2)}B`;
+}
+
+// Converts a dataset component's stored value to its plain base unit
+// (litres, km, tonnes, cigarettes, vehicles) before auto-scaling to K/M/B
+// for display - keyed on the "unit" field set on each component in
+// data/<year>/*.json, not on slug, so a new dataset only needs to pick one
+// of these (or add a new one) rather than writing its own formatter.
+const UNIT_SCALE = {
+  "kL": { multiplier: 1000, base: "L" },
+  "kt": { multiplier: 1000, base: "t" },
+  "kt CO2-e": { multiplier: 1000, base: "t CO2-e" },
+  "t N": { multiplier: 1, base: "t N" },
+  "million cigarettes": { multiplier: 1000000, base: "cigarettes" },
+  "million km": { multiplier: 1000000, base: "km" },
+  "thousand vehicles": { multiplier: 1000, base: "vehicles" },
+};
+
+// $K components (the large majority - corp, land, otherDirect, and most of
+// nonTaxRevenue) fall back to the same $B formatting used everywhere else in
+// the app, rather than a UNIT_SCALE entry, since formatBillions already does
+// exactly this conversion.
+function formatTaxable(unit, value) {
+  const scale = UNIT_SCALE[unit];
+  if (!scale) return formatBillions(value);
+  const raw = value * scale.multiplier;
+  const abs = Math.abs(raw);
+  if (abs >= 1000000000) return `${(raw / 1000000000).toFixed(2)}B ${scale.base}`;
+  if (abs >= 1000000) return `${(raw / 1000000).toFixed(2)}M ${scale.base}`;
+  if (abs >= 1000) return `${(raw / 1000).toFixed(2)}K ${scale.base}`;
+  return `${raw.toFixed(2)} ${scale.base}`;
+}
+
 function calculateMultiComponentTax(category) {
-  const { datasetType } = multiComponentConfig[category];
+  const { datasetType, assumptionsId, baseAdjustments } = multiComponentConfig[category];
   const dataset = datasetFor(datasetType);
   const rates = planCurrent[category];
 
   let cumulativeTake = 0;
   const result = dataset.map(entry => {
+    // A slug with no entry in planCurrent[category] has no policy rate at
+    // all (e.g. non-tax revenue) - treated as a fixed 100% pass-through.
+    const rate = rates[entry.slug] ?? 100;
+    // Most rates are a % (divide by 100); a few (cents/litre, $/tonne, etc.)
+    // are real per-unit rates with their own divisor - see the dataset
+    // entry's own rateDivisor.
+    const divisor = entry.rateDivisor ?? 100;
+    const adjustBase = baseAdjustments?.[entry.slug];
     let components = [];
     entry.components.forEach(x => {
-      let take = x.value * rates[entry.slug] / 100;
-      components.push({ name: x.name, total: x.value, take: take });
+      const total = adjustBase ? adjustBase(x.value) : x.value;
+      let take = total * rate / divisor;
+      components.push({ name: x.name, total: total, take: take, slug: entry.slug, unit: x.unit });
       cumulativeTake += take;
     });
     return { name: entry.name, description: entry.description, components: components, slug: entry.slug };
@@ -309,12 +514,14 @@ function calculateMultiComponentTax(category) {
   data[category] = result;
   data.totals[category] = cumulativeTake;
   drawMultiComponentTable(category);
+  drawAssumptions(assumptionsId, datasetType);
 }
 
 function drawMultiComponentTable(category) {
   const { containerId } = multiComponentConfig[category];
+  const rates = planCurrent[category];
 
-  // Group-level (one per dataset category, e.g. one per corp/land/fuelEts
+  // Group-level (one per dataset category, e.g. one per corp/otherIndirect
   // slug) update/enter/exit, keyed by slug so groups persist across redraws.
   const containersUpdate = d3.select(containerId)
     .selectAll(".multi-component-group")
@@ -331,17 +538,47 @@ function drawMultiComponentTable(category) {
     .append("h4")
     .text((d) => d.name);
 
-  containersEnter
+  // Per-slug modifier checkboxes (e.g. "Exempt light EVs" under Road User
+  // Charges) - rendered once per group here; checked state is synced below
+  // in containersMerged on every redraw, same as the rate slider.
+  const { modifiers } = multiComponentConfig[category];
+  containersEnter.each(function (d) {
+    const mods = modifiers?.[d.slug];
+    if (!mods) return;
+    mods.forEach((mod) => {
+      d3.select(this)
+        .append("label")
+        .attr("class", "modifier-label")
+        .html(`<input type="checkbox" id="modifier-${category}-${d.slug}-${mod.id}"> ${mod.label}`)
+        .select("input")
+        .on("change", function () { mod.set(this.checked); });
+    });
+  });
+
+  // Slugs with no entry in planCurrent[category] have no policy rate at all
+  // (e.g. non-tax revenue) - only rated slugs get a slider.
+  const slideContainerEnter = containersEnter
+    .filter((d) => rates[d.slug] !== undefined)
     .append("div")
-    .attr("class", "slidecontainer")
+    .attr("class", "slidecontainer");
+
+  slideContainerEnter
+    .append("label")
+    .attr("class", "slider-label")
+    .attr("for", (d) => `slider-${category}-${d.slug}`)
+    .html((d) => `<span>${sliderRangeFor(category, d.slug).label}</span><output id="slider-${category}-${d.slug}-value"></output>`);
+
+  slideContainerEnter
     .append("input")
     .attr("type", "range")
-    .attr("min", 0)
-    .attr("max", 100)
-    .attr("step", 0.1)
     .attr("class", "slider")
     .attr("id", (d) => `slider-${category}-${d.slug}`)
     .attr("oninput", (d) => `changeMultiComponentRate('${category}', '${d.slug}', this.value)`)
+
+  slideContainerEnter
+    .append("div")
+    .attr("class", "tick-marks")
+    .attr("id", (d) => `slider-${category}-${d.slug}-ticks`);
 
   const tablesEnter = containersEnter
     .append("table")
@@ -364,7 +601,18 @@ function drawMultiComponentTable(category) {
   const containersMerged = containersEnter.merge(containersUpdate);
 
   containersMerged.select(".slider")
-    .property("value", (d) => planCurrent[category][d.slug]);
+    .each(function (d) {
+      const sliderId = this.id;
+      applySliderRange(
+        d3.select(this), d3.select(`#${sliderId}-ticks`), d3.select(`#${sliderId}-value`),
+        sliderRangeFor(category, d.slug), rates[d.slug]);
+    });
+
+  containersMerged.each(function (d) {
+    (modifiers?.[d.slug] ?? []).forEach((mod) => {
+      d3.select(`#modifier-${category}-${d.slug}-${mod.id}`).property("checked", mod.get());
+    });
+  });
 
   const tablerowsUpdate = containersMerged.select("tbody").selectAll("tr").data((d) => d.components);
 
@@ -376,179 +624,147 @@ function drawMultiComponentTable(category) {
     .merge(tablerowsUpdate)
     .html((d) => `
       <td>${d.name}</td>
-      <td>$${(d.total / 1000000).toFixed(2)}B</td>
-      <td>$${(d.take / 1000000).toFixed(2)}B</td>
+      <td>${formatTaxable(d.unit, d.total)}</td>
+      <td>${formatBillions(d.take)}</td>
     `)
 }
 
 function changeMultiComponentRate(category, tid, value) {
-  if (!planCurrent.isCustom) { createNewIncomePlan() }
-  planCurrent[category][tid] = Math.max(0, Math.min(100, parseFloat(value)));
+  ensureCustomPlan();
+  const { min, max } = sliderRangeFor(category, tid);
+  planCurrent[category][tid] = clamp(parseFloat(value), min, max);
   calculateMultiComponentTax(category);
   drawTotal();
 }
 
 const calculateCorp = () => calculateMultiComponentTax("corp");
 const calculateLand = () => calculateMultiComponentTax("land");
-const calculateFuelEts = () => calculateMultiComponentTax("fuelEts");
+const calculateOtherDirect = () => calculateMultiComponentTax("otherDirect");
+const calculateOtherIndirect = () => calculateMultiComponentTax("otherIndirect");
+const calculateNonTaxRevenue = () => calculateMultiComponentTax("nonTaxRevenue");
 
-function changeCorpRate(value, tid) {
-  // Kept for backwards compatibility with the corp tab's existing markup.
-  changeMultiComponentRate("corp", tid, value);
-}
-
-// --- Wealth tax: a single threshold + flat rate applied above that
-// threshold, against a dataset of net-worth bands (shaped like the income
-// dataset). Every real wealth tax policy found in research is a single
-// threshold+rate, not an arbitrary bracket ladder, so this doesn't reuse the
-// income bracket/chart machinery - see the implementation plan for why.
-function calculateWealthTax() {
-  const dataset = datasetFor("wealth");
-  const { threshold, percent } = planCurrent.wealth;
-
-  let cumulativeTake = 0;
-  const items = dataset.map(band => {
-    const taxableAvg = Math.max(0, band.avg - threshold);
-    const take = taxableAvg * band.count * (percent / 100);
-    cumulativeTake += take;
-    return { from: band.from, to: band.to, count: band.count, avg: band.avg, take: take };
-  });
-
-  data.wealth = items;
-  data.totals.wealth = cumulativeTake;
-  drawWealthTable();
-}
-
-function drawWealthTable() {
-  const rowsSelection = d3.select("#wealth-table-container").select("tbody").selectAll("tr").data(data.wealth);
-
-  rowsSelection
-    .enter()
-    .append("tr")
-    .merge(rowsSelection)
-    .html((d) => `
-      <td>$${d.from}K - ${d.to >= 999999999 ? "&infin;" : "$" + d.to + "K"}</td>
-      <td>${d.count}</td>
-      <td>$${d.avg.toFixed(2)}K avg</td>
-      <td>$${(d.take / 1000000).toFixed(2)}B</td>
-    `)
-
-  rowsSelection.exit().remove();
-
-  d3.select("#wealth-threshold").property("value", planCurrent.wealth.threshold);
-  d3.select("#wealth-percent").property("value", planCurrent.wealth.percent);
-}
-
-function changeWealthThreshold(value) {
-  if (!planCurrent.isCustom) { createNewIncomePlan() }
-  planCurrent.wealth.threshold = Math.max(0, parseFloat(value));
-  calculateWealthTax();
+function changeEvRucExemption(checked) {
+  ensureCustomPlan();
+  planCurrent.evRucExempt = checked;
+  calculateOtherIndirect();
   drawTotal();
 }
 
-function changeWealthPercent(value) {
-  if (!planCurrent.isCustom) { createNewIncomePlan() }
-  planCurrent.wealth.percent = Math.max(0, Math.min(100, parseFloat(value)));
-  calculateWealthTax();
-  drawTotal();
-}
-
+// Clones every field the three tax-shape configs know about (rather than a
+// hand-maintained field list) so adding a new tax type to bracketConfig/
+// flatRateConfig/multiComponentConfig is enough on its own - no separate
+// edit needed here to keep a custom plan's clone complete. evRucExempt is a
+// lone boolean outside that pattern, so it's cloned explicitly.
 function createNewIncomePlan() {
-  plans.push({
-    name: "Custom Plan",
-    brackets: structuredClone(planCurrent.brackets),
-    gst: planCurrent.gst,
-    corp: structuredClone(planCurrent.corp),
-    cgt: planCurrent.cgt,
-    trust: planCurrent.trust,
-    wealth: structuredClone(planCurrent.wealth),
-    land: structuredClone(planCurrent.land),
-    fuelEts: structuredClone(planCurrent.fuelEts),
-    isCustom: true
-  })
+  const clone = { name: "Custom Plan", isCustom: true, evRucExempt: planCurrent.evRucExempt };
+  Object.values(bracketConfig).forEach(({ bracketsField }) => {
+    clone[bracketsField] = structuredClone(planCurrent[bracketsField]);
+  });
+  Object.values(flatRateConfig).forEach(({ rateField }) => {
+    clone[rateField] = planCurrent[rateField];
+  });
+  Object.keys(multiComponentConfig).forEach((category) => {
+    clone[category] = structuredClone(planCurrent[category]);
+  });
+  plans.push(clone);
   planCurrent = plans[plans.length - 1];
   drawDropdown();
 }
-function insertIncomeBracket() {
-  if (!planCurrent.isCustom) { createNewIncomePlan() }
+
+// Predefined plans are read-only; the first edit to one clones it into a new
+// "Custom Plan" (via createNewIncomePlan) and repoints planCurrent at the
+// clone, so every mutator below can call this instead of re-checking
+// `planCurrent.isCustom` itself.
+function ensureCustomPlan() {
+  if (!planCurrent.isCustom) { createNewIncomePlan(); }
+}
+
+function insertBracket(type) {
+  ensureCustomPlan();
+  const { bracketsField, xDomain } = bracketConfig[type];
+  const brackets = planCurrent[bracketsField];
 
   // If only one bracket, just add a new one at half way.
-  if (planCurrent.brackets.length === 1) {
-    planCurrent.brackets[0].top = (xScale.domain()[1]/2);
-  }else{
+  if (brackets.length === 1) {
+    brackets[0].top = (xDomain[1] / 2);
+  } else {
     // Get range of second to last bracket.
-    const bracketEnd = planCurrent.brackets[planCurrent.brackets.length - 2].top;
-    planCurrent.brackets[planCurrent.brackets.length - 1].top = bracketEnd + ((xScale.domain()[1] - bracketEnd) / 2);
+    const bracketEnd = brackets[brackets.length - 2].top;
+    brackets[brackets.length - 1].top = bracketEnd + ((xDomain[1] - bracketEnd) / 2);
   }
-  planCurrent.brackets.push({ id: 0, top: 999999999, percent: planCurrent.brackets[planCurrent.brackets.length - 1].percent + 5 })
-  planCurrent.brackets.map((v, i) => { v.id = i }); // re-index
-  calculateIncomeTax();
+  brackets.push({ id: 0, top: 999999999, percent: brackets[brackets.length - 1].percent + 5 })
+  brackets.forEach((v, i) => { v.id = i }); // re-index
+  calculateBracketTax(type);
+  drawTotal();
 }
-function removeIncomeBracket(i) {
-  if (!planCurrent.isCustom) { createNewIncomePlan() }
-  planCurrent.brackets.splice(i, 1);
-  planCurrent.brackets.map((v, i) => { v.id = i }); // re-index
-  planCurrent.brackets[planCurrent.brackets.length - 1].top = 999999999;
-  calculateIncomeTax();
+function removeBracket(type, i) {
+  ensureCustomPlan();
+  const brackets = planCurrent[bracketConfig[type].bracketsField];
+  brackets.splice(i, 1);
+  brackets.forEach((v, i) => { v.id = i }); // re-index
+  brackets[brackets.length - 1].top = 999999999;
+  calculateBracketTax(type);
+  drawTotal();
 }
-function changeIncomeBracketPercent(bracket, value) {
-  // Called when income bracket percentage is changed.
-  if (!planCurrent.isCustom) {
-    // If looking at predefined bracket, add new 'custom', then edit that.
-    createNewIncomePlan()
-  }
-  planCurrent.brackets[bracket].percent = Math.max(Math.min(100, Math.max(parseFloat(value), -100)), 0);
+function changeBracketPercent(type, bracket, value) {
+  // Called when a bracket's percentage is changed.
+  ensureCustomPlan();
+  const brackets = planCurrent[bracketConfig[type].bracketsField];
+  brackets[bracket].percent = clamp(parseFloat(value), 0, 100);
   // TODO: allow negative tax range.
-  calculateIncomeTax();
+  calculateBracketTax(type);
+  drawTotal();
 }
-function changeIncomeBracketRange(bracket, value) {
-  // Called when income bracket range is changed.
-  if (!planCurrent.isCustom) {
-    // If looking at predefined bracket, add new 'custom', then edit that.
-    createNewIncomePlan()
-  }
-  planCurrent.brackets[bracket].top = Math.max(parseFloat(value), (bracket < 1) ? 0 : planCurrent.brackets[bracket - 1].top + 1);
-  calculateIncomeTax();
+function changeBracketRange(type, bracket, value) {
+  // Called when a bracket's range is changed.
+  ensureCustomPlan();
+  const { bracketsField, floor } = bracketConfig[type];
+  const brackets = planCurrent[bracketsField];
+  brackets[bracket].top = Math.max(parseFloat(value), (bracket < 1) ? floor : brackets[bracket - 1].top + 1);
+  calculateBracketTax(type);
+  drawTotal();
 }
 
 function changeGSTRate(value) {
   changeFlatRate("gst", value);
 }
 
-function drawIncomeTable() {
+function drawBracketTable(type) {
   // Create a table to display rectangle dimensions
-  const container = d3.select("#income-bracket-table-container");
+  const { bracketsField, tableContainerId, addButtonId, maxBrackets, floor, unitLabel } = bracketConfig[type];
+  const brackets = planCurrent[bracketsField];
+  const container = d3.select(tableContainerId);
 
   // Update rows in tbody
-  const rowsSelection = container.select("tbody").selectAll("tr").data(planCurrent.brackets)
+  const rowsSelection = container.select("tbody").selectAll("tr").data(brackets)
 
   rowsSelection
     .enter()
     .append("tr")
     .merge(rowsSelection)
     .html((d, i) => `
-       <td>${letters[i]}</td>
-       <td>$${i < 1 ? 0 : planCurrent.brackets[i - 1].top.toFixed(2)}K</td>
-       <td>${i == planCurrent.brackets.length - 1 ? "--" : `
-        $ <input
-        class="income-bracket-range"
-        type="number"
-        min="${i == 0 ? 10 : planCurrent.brackets[i - 1].top + 10}"
-        value=${d.top.toFixed(2)}
-        oninput="changeIncomeBracketRange(${i}, this.value)"> K</td>`
-      }
-       <td><input class="income-bracket-percent" type="number" min=0 max=100 value=${d.percent.toFixed()} oninput="changeIncomeBracketPercent(${i}, this.value)"> %</td>
-       <td>${data.income.brackets[i].count}</td>
-       <td>$${(data.income.brackets[i].take / 1000000).toFixed(2)}B</td>
-       <td>${i > 0 ? "<button onclick=removeIncomeBracket(" + i + ")>x</button>" : ""}</td>
-    `)
-  const addButton = d3.select("#income-bracket-add");
-  if (planCurrent.brackets.length > 11) {
+     <td>${letters[i]}</td>
+     <td>$${(i < 1 ? floor : brackets[i - 1].top).toFixed(2)}${unitLabel}</td>
+     <td>${i == brackets.length - 1 ? "--" : `
+      $ <input
+      class="income-bracket-range"
+      type="text"
+      inputmode="decimal"
+      value=${d.top.toFixed(2)}
+      onchange="changeBracketRange('${type}', ${i}, this.value)"> ${unitLabel}</td>`
+    }
+     <td><input class="income-bracket-percent" type="text" inputmode="decimal" value=${d.percent.toFixed()} onchange="changeBracketPercent('${type}', ${i}, this.value)"> %</td>
+     <td>${data[type].brackets[i].count}</td>
+     <td>${formatBillions(data[type].brackets[i].take)}</td>
+     <td>${i > 0 ? `<button onclick="removeBracket('${type}', ${i})">x</button>` : ""}</td>
+  `)
+  const addButton = d3.select(addButtonId);
+  if (brackets.length > maxBrackets) {
     addButton.attr('disabled', true);
     addButton.attr('title', 'Thats enough..')
   } else {
     addButton.attr('disabled', null);
-    addButton.attr('title', 'Add a new income bracket.')
+    addButton.attr('title', 'Add a new bracket.')
   }
   // Remove old rows
   rowsSelection.exit().remove();
@@ -566,6 +782,9 @@ function switchTab(id) {
   x.style("display", null);
 }
 
+// This stacks every category in data.totals, tax and non-tax alike (ACC
+// levies, nonTaxRevenue) - by design, all Crown revenue counts here even
+// though not all of it is technically "tax". See TODO.md.
 function drawTotal() {
 
   let cumulative = 0;
@@ -607,114 +826,97 @@ function drawTotal() {
   totalPlot.selectAll(".y-axis").remove();
 }
 
-function drawIncomeBracket() {
+// Joins `brackets` against `className` rects within `layer`. `setupEnter`
+// sets static attrs/styles that don't change across redraws (only run once,
+// on newly-entered nodes); `dynamicAttrs` is an {attr: fn} map applied to
+// both new and existing nodes every call.
+function joinLayerRects(layer, className, brackets, setupEnter, dynamicAttrs, dragBehavior) {
+  const sel = layer.selectAll(`.${className}`).data(brackets);
+  sel.exit().remove();
+  const entered = sel.enter().append("rect").attr("class", className);
+  setupEnter(entered);
+  const merged = entered.merge(sel);
+  Object.entries(dynamicAttrs).forEach(([attr, fn]) => merged.attr(attr, fn));
+  if (dragBehavior) merged.call(dragBehavior);
+  return merged;
+}
 
-  // Add drag behaviors
-  const dragUp = d3.drag()
-    .on("drag", function (event, d) {
-      changeIncomeBracketPercent(d.id, yScaleRate.invert(event.y))
+function drawBracketChart(type) {
+  const { bracketsField, floor } = bracketConfig[type];
+  const { xScale, yScaleRate, rectLayer, topHandleLayer, rightHandleLayer, dragUp, dragRight } = bracketPlots[type];
+  const brackets = planCurrent[bracketsField];
+
+  // Left edge of bracket i, and its rendered width (the last bracket
+  // overflows well past the visible chart edge - the SVG clips it, giving
+  // the "unbounded top bracket" look income tax has).
+  const rectFrom = (i) => (i < 1) ? floor : brackets[i - 1].top;
+  const rectWidth = (d, i) => {
+    const from = rectFrom(i);
+    return i == brackets.length - 1
+      ? Math.max(0, width - xScale(from)) + 50
+      : xScale(d.top) - xScale(from);
+  };
+  // Pixel y of the taller of bracket i and its neighbour, computed once per
+  // bracket rather than per attribute, for sizing a shared-boundary handle
+  // that stays draggable even when one side is 0%.
+  const yScaleRateZero = yScaleRate(0);
+  const boundaryY = brackets.map((b, i) => yScaleRate(Math.max(b.percent, brackets[i + 1]?.percent ?? b.percent)));
+
+  joinLayerRects(rectLayer, "bracket-rect", brackets,
+    (entered) => entered.attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1),
+    {
+      x: (d, i) => xScale(rectFrom(i)),
+      y: d => yScaleRate(d.percent),
+      width: rectWidth,
+      height: d => yScaleRateZero - yScaleRate(d.percent),
     });
 
-  const dragRight = d3.drag()
-    .on("drag", function (event, d) {
-      changeIncomeBracketRange(d.id, xScale.invert(event.x))
-    });
+  joinLayerRects(topHandleLayer, "handle-top", brackets,
+    (entered) => entered.attr("fill", "transparent").style("cursor", "row-resize"),
+    {
+      x: (d, i) => xScale(rectFrom(i)),
+      width: rectWidth,
+      y: d => yScaleRate(d.percent) - (handleWidth / 2),
+      height: handleWidth,
+    },
+    dragUp);
 
-  // Draw rectangles
-  const rectGroupUpdate = incomePlot.selectAll(".rect-group")
-    .data(planCurrent.brackets)
-
-  rectGroupUpdate.exit().remove();
-
-  const rectGroupEnter = rectGroupUpdate.enter()
-    .append("g")
-    .attr("class", "rect-group");
-
-  const rectGroupMerged = rectGroupEnter
-    .append("rect")
-    .attr("fill", "none")
-    .attr("stroke", "black")
-    .attr("stroke-width", 1)
-    .merge(rectGroupUpdate.select("rect"))
-
-  rectGroupMerged
-    .attr("x", (d, i) => xScale((i < 1) ? 0 : planCurrent.brackets[i - 1].top))
-    .attr("y", d => yScaleRate(d.percent))
-    .attr("width", (d, i) => (
-      xScale(
-        i < 1 ? d.top : // If first bracket
-          i == planCurrent.brackets.length - 1 ? 100000 : // If last bracket
-            +d.top - planCurrent.brackets[i - 1].top
-      )))
-    .attr("height", d => yScaleRate(0) - yScaleRate(d.percent))
-
-  // Add top handle.
-  rectGroupEnter
-    .append("rect")
-    .attr("class", "handle-top")
-    .attr("fill", "transparent")
-    .style("cursor", "row-resize")
-    .merge(rectGroupUpdate.select(".handle-top"))
-    .attr("x", function () {
-      return (this.parentNode.getElementsByTagName("rect")[0].getAttribute("x"))
-    })
-    .attr("width", function () {
-      return (this.parentNode.getElementsByTagName("rect")[0].getAttribute("width"))
-    })
-    .attr("y", function () {
-      return (height - this.parentNode.getElementsByTagName("rect")[0].getAttribute('height') - (handleWidth / 2))
-    })
-    .attr("height", handleWidth)
-    .call(dragUp);
-
-  // Add right handle.
-  rectGroupEnter
-    .append("rect")
-    .attr("class", "handle-right")
-    .attr("fill", "transparent")
-    //.attr("r", (d, i) => ((i < brackets.length-1) ? 8 : 0))
-    .style("cursor", "col-resize")
-    .merge(rectGroupUpdate.select(".handle-right"))
-    .attr("x", function () {
-      return (+this.parentNode.getElementsByTagName("rect")[0].getAttribute("x") + +this.parentNode.getElementsByTagName("rect")[0].getAttribute('width') - (handleWidth / 2))
-    })
-    .attr("width", (d, i) => ((i < planCurrent.brackets.length - 1) ? handleWidth : 0))
-    .attr("y", function () {
-      return (height - this.parentNode.getElementsByTagName("rect")[0].getAttribute("height"))
-    })
-    .attr("height", function () {
-      // TODO: Select largest of side.
-      return (this.parentNode.getElementsByTagName("rect")[0].getAttribute("height"))
-    })
-    .call(dragRight);
+  joinLayerRects(rightHandleLayer, "handle-right", brackets,
+    (entered) => entered.attr("fill", "transparent").style("cursor", "col-resize"),
+    {
+      x: d => xScale(d.top) - (handleWidth / 2),
+      width: (d, i) => ((i < brackets.length - 1) ? handleWidth : 0),
+      y: (d, i) => boundaryY[i],
+      height: (d, i) => yScaleRateZero - boundaryY[i],
+    },
+    dragRight);
 }
 
 function recalculateAll() {
-  calculateIncomeTax();
+  calculateBracketTax("income");
   calculateGST();
   calculateCorp();
-  calculateCGT();
-  calculateTrust();
   calculateLand();
-  calculateFuelEts();
-  calculateWealthTax();
+  calculateBracketTax("wealth");
+  calculateOtherDirect();
+  calculateOtherIndirect();
+  calculateNonTaxRevenue();
+  data.totals.other = metaFor("otherIndirect").otherIndirectResidual ?? 0;
   drawTotal();
 }
 
 drawDropdown();
 drawYearDropdown();
-drawIncomeHistogram();
+drawBracketHistogram("income");
+drawBracketHistogram("wealth");
 recalculateAll();
 
 // allow access from page
-window.changeIncomeBracketRange = changeIncomeBracketRange;
-window.changeIncomeBracketPercent = changeIncomeBracketPercent;
-window.removeIncomeBracket = removeIncomeBracket;
-window.insertIncomeBracket = insertIncomeBracket;
+window.changeBracketRange = changeBracketRange;
+window.changeBracketPercent = changeBracketPercent;
+window.removeBracket = removeBracket;
+window.insertBracket = insertBracket;
 window.changeGSTRate = changeGSTRate;
-window.changeCorpRate = changeCorpRate;
 window.changeFlatRate = changeFlatRate;
 window.changeMultiComponentRate = changeMultiComponentRate;
-window.changeWealthThreshold = changeWealthThreshold;
-window.changeWealthPercent = changeWealthPercent;
 window.switchTab = switchTab;

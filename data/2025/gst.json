@@ -1,9 +1,10 @@
 {
-  "source": {
+  "sources": [{
     "date": "9 October 2025",
     "url": "https://www.treasury.govt.nz/sites/default/files/2025-10/fsgnz-2025.pdf",
-    "name": "Financial Statements of the Government of New Zealand for the year ended 30 June 2025"
-  },
+    "name": "Financial Statements of the Government of New Zealand for the year ended 30 June 2025",
+    "assumptions": "Straight Treasury financial-statement Gross/Refunds figures for the stated year."
+  }],
   "data": [
     {
       "value": 48668000,

@@ -1,0 +1,16 @@
+{
+    "sources": [{
+        "date": "Year ended June 2025",
+        "url": "https://www.stats.govt.nz/information-releases/household-net-worth-statistics-year-ended-june-2024/",
+        "name": "Household net worth statistics",
+        "assumptions": "Estimated from the 2024 base by scaling each band's average net worth by +2.4%. Summing count x avg across all bands gives approximately $2.068 trillion, matching Stats NZ's published total household net worth of $2.067 trillion for the year ended June 2024."
+    }],
+    "data": [
+        { "from": -500, "to": 50, "count": 411740, "avg": -8.7 },
+        { "from": 50, "to": 300, "count": 411740, "avg": 147.73 },
+        { "from": 300, "to": 750, "count": 411740, "avg": 530.64 },
+        { "from": 750, "to": 1500, "count": 411740, "avg": 1061.71 },
+        { "from": 1500, "to": 10000, "count": 405564, "avg": 2923.06 },
+        { "from": 10000, "to": 999999999, "count": 6176, "avg": 35441.66 }
+    ]
+}

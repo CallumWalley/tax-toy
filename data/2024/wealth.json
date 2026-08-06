@@ -1,0 +1,30 @@
+{
+    "sources": [
+        {
+            "date": "Year ended June 2024",
+            "url": "https://www.stats.govt.nz/information-releases/household-net-worth-statistics-year-ended-june-2024/",
+            "name": "Household net worth statistics",
+            "assumptions": "Q1-Q4 and the bulk of Q5 are real Stats NZ quintile aggregates (~411,740 households/quintile, ~2.06M households total; band edges between quintiles are interpolated between published medians, not exact Stats NZ cut points). Stats NZ doesn't publish bands above ~$1.5M net worth, which can't resolve a $10M+ wealth-tax threshold - so the top quintile has been split into an ordinary 'rest of Q5' band and a separate ultra-wealthy band, with the ultra-wealthy band's count and average back-calculated to match the Green Party's own 2026 costing (~$3.8bn/year at 2.5% above $10M) rather than sourced independently."
+        },
+        {
+            "date": "April 2023",
+            "url": "",
+            "name": "IRD High-Wealth Individuals Research Project",
+            "assumptions": "Directly surveyed 311 wealthy families and found median net worth $106m, mean $276m - consistent with, but not precise enough to replace, the ultra-wealthy band's back-derived $35.4m average above."
+        },
+        {
+            "date": "2026",
+            "url": "https://www.greens.org.nz/tax_system_for_all",
+            "name": "Green Party 2026 tax policy",
+            "assumptions": "A 2.5% annual tax on individual net worth above $10M (family home exempt), estimated to raise ~$3.8bn/year - the figure the ultra-wealthy band above is back-calculated against."
+        }
+    ],
+    "data": [
+        { "from": -500, "to": 50, "count": 411740, "avg": -8.5 },
+        { "from": 50, "to": 300, "count": 411740, "avg": 144.27 },
+        { "from": 300, "to": 750, "count": 411740, "avg": 518.2 },
+        { "from": 750, "to": 1500, "count": 411740, "avg": 1036.83 },
+        { "from": 1500, "to": 10000, "count": 405564, "avg": 2854.55 },
+        { "from": 10000, "to": 999999999, "count": 6176, "avg": 34611 }
+    ]
+}

@@ -1,0 +1,70 @@
+{
+    "sources": [
+        {
+            "date": "9 October 2025",
+            "url": "https://www.treasury.govt.nz/sites/default/files/2025-10/fsgnz-2025.pdf",
+            "name": "Financial Statements of the Government of New Zealand for the year ended 30 June 2025",
+            "assumptions": "Treasury's FY2025 financial statements report Gross companies tax, Refunds, and NRWT as a combined 'corporate tax' total, and RWT on interest/dividends as a separate 'other direct income tax' line - they don't itemise a Maori authority tax figure the way this dataset's plan-rate object still assumes (that rate is unused against this dataset). FY2025 actual figures: gross companies tax $17,727m, refunds $964m, NRWT $733m, RWT on interest $3,567m, RWT on dividends $940m - each divided by its component's rate (28%/15%/33%) to get the back-derived taxable base above. RWT on dividends fell sharply from FY2024's $2,521m - a genuine year-on-year change, not a data error."
+        },
+        {
+            "date": "Current",
+            "url": "https://www.ird.govt.nz/income-tax/withholding-taxes/non-resident-withholding-tax-nrwt",
+            "name": "IRD - Non-resident withholding tax (NRWT) rates",
+            "assumptions": "NRWT is actually 0%/15%/30%, plus DTA-specific rates, depending on shareholder and income type. The flat 15% used to back-derive the NRWT base above is a simplification, not the headline rate."
+        },
+        {
+            "date": "Current",
+            "url": "https://www.ird.govt.nz/income-tax/withholding-taxes/resident-withholding-tax-rwt/using-the-right-rwt-tax-rate",
+            "name": "IRD - Resident withholding tax (RWT) rates",
+            "assumptions": "RWT on interest is tiered 10.5%/17.5%/28%/33%/39% by the recipient's elected rate; only RWT on dividends is genuinely flat at 33%. The flat 33% used to back-derive the RWT base above is a simplification."
+        },
+        {
+            "date": "2026",
+            "url": "https://www.greens.org.nz/greens_commit_to_tax_the_super_rich_and_large_corporates_fairly_cut_income_tax_for_96",
+            "name": "Green Party 2026 tax policy",
+            "assumptions": "Proposes a 33% corporate tax rate for companies with >$30M turnover (~0.7% of businesses), estimated to raise ~$5.9bn over 4 years (~$1.475bn/year). 'corpLarge' models this as a second corporate-tax component alongside the flat 'corp' one, applied identically to both years since the policy isn't tied to a specific historical year."
+        },
+        {
+            "date": "2026",
+            "url": "https://www.deloitte.com/nz/en/services/tax/perspectives/election-tax-policies-part-one.html",
+            "name": "Deloitte NZ - Election tax policies",
+            "assumptions": "Independently estimates the same large-company rate rise at $1.37-1.57bn/year, bracketing the Green Party's own figure. corpLarge's taxable-income base (~$29.5bn) is back-derived as annual_revenue / (0.33-0.28) from these estimates - no IRD/Stats NZ company-tax-by-turnover-band split exists publicly to source it independently. That $29.5bn is subtracted out of 'corp's Gross Corporate figure below, so 'corp' represents only the <=$30M-turnover cohort and the two components sum back to the real FY total - refunds aren't split by company size (no data exists to do so), so they stay wholly under 'corp'."
+        }
+    ],
+    "data": [
+        {
+            "components": [
+                {"name": "Gross Corporate", "value": 33810714, "unit": "$K"},
+                {"name": "Refunds Corporate", "value": -3442857, "unit": "$K"}
+            ],
+            "slug": "corp",
+            "name": "Corporate",
+            "description": "A tax on net income of a corporation."
+        },
+        {
+            "components": [
+                {"name": "Estimated taxable income (>$30M turnover)", "value": 29500000, "unit": "$K"}
+            ],
+            "slug": "corpLarge",
+            "name": "Corporate (large companies)",
+            "description": "Companies with >$30M annual turnover (~0.7% of businesses) - the cohort the Green Party's 2026 policy taxes separately at 33%."
+        },
+        {
+            "components": [
+                {"name": "Gross", "value": 4886667, "unit": "$K"}
+            ],
+            "slug": "nrwt",
+            "name": "Non-resident withholding tax",
+            "description": "Tax on profits sent overseas to non-residents."
+        },
+        {
+            "components": [
+                {"name": "RWT on interest", "value": 10809091, "unit": "$K"},
+                {"name": "RWT on dividends", "value": 2848485, "unit": "$K"}
+            ],
+            "slug": "rwt",
+            "name": "Resident withholding tax",
+            "description": "Tax on interest and dividends paid to New Zealand residents."
+        }
+    ]
+}

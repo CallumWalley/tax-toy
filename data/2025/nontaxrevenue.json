@@ -1,0 +1,100 @@
+{
+    "sources": [
+        {
+            "date": "2025",
+            "url": "https://www.acc.co.nz/assets/corporate-documents/ACC8755-acc-annual-report-2025.pdf",
+            "name": "ACC Annual Report 2025",
+            "assumptions": "Levy revenue for FY2025: Earners' Account $2,695m, Work Account $999m, Motor Vehicle Account $481m. Treasury's FSGNZ 2025 reports a combined 'ACC levies' line of $4,244m - about $70m higher, likely a scope difference between the two publications."
+        },
+        {
+            "date": "9 October 2025",
+            "url": "https://www.treasury.govt.nz/sites/default/files/2025-10/fsgnz-2025.pdf",
+            "name": "Financial Statements of the Government of New Zealand for the year ended 30 June 2025, Notes 4-7",
+            "assumptions": "'SOE dividends and profits' uses the general 'Dividends' line ($1,636m), since FSGNZ fully consolidates SOEs and has no standalone SOE-specific figure. 'Investment income' is the interest revenue line ($7,039m). 'Sale of goods and services' is an exact match ($26,085m). 'Fees, fines and penalties' sums Court fines ($132m) and child support/Working for Families penalties ($143m) = $275m."
+        },
+        {
+            "date": "2026",
+            "url": "https://www.calculate.co.nz/reference/nz-acc-levy-rates.php",
+            "name": "calculate.co.nz - NZ ACC levy rates",
+            "assumptions": "Current (2026/27 levy year) rates: Earner's Levy $1.75 per $100 of liable earnings; Work Levy $0.69 per $100 of payroll, ACC's own scheme-wide average standing in for over 500 industry-specific Classification Unit rates that range $0.02-$5.77 per $100; Motor Vehicle Levy $131.94 per vehicle per year, ACC's own scheme-wide average across about 10 vehicle classes. Each ACC levy's taxable base above is back-derived as FY2025 revenue divided by these current rates, rather than the rate actually in effect during FY2025."
+        },
+        {
+            "date": "FY2024/25",
+            "url": "https://www.nzpam.govt.nz/about/news/mining-industry-statistics-for-2024",
+            "name": "NZPAM - Mining Industry Statistics",
+            "assumptions": "Petroleum royalties and energy resource levies combined fell to $123.7m for the year to 30 June 2025 (down 44.4% year-on-year). Treasury separately books 'Energy resources levies' ($16m for FY2025) elsewhere in this project's 'other' residual, so the petroleum-royalties figure above ($107.7m) subtracts that out to avoid double-counting - not an official isolated split, a derived estimate."
+        }
+    ],
+    "data": [
+        {
+            "components": [
+                {"name": "Liable earnings", "value": 154000000.00, "unit": "$K"}
+            ],
+            "slug": "earnerLevy",
+            "name": "Earner's Levy",
+            "description": "Levy on employee/self-employed earnings funding non-work injury cover.",
+            "rateUnit": "%",
+            "rateDivisor": 100
+        },
+        {
+            "components": [
+                {"name": "Liable payroll", "value": 144782608.69, "unit": "$K"}
+            ],
+            "slug": "workLevy",
+            "name": "Work Levy",
+            "description": "Levy on employer payroll/self-employed income funding work-injury cover.",
+            "rateUnit": "%",
+            "rateDivisor": 100
+        },
+        {
+            "components": [
+                {"name": "Licensed vehicles", "value": 3645.60, "unit": "thousand vehicles"}
+            ],
+            "slug": "mvLevy",
+            "name": "Motor Vehicle Levy",
+            "description": "Levy collected via petrol excise and vehicle licensing funding motor-vehicle injury cover.",
+            "rateUnit": "$/vehicle",
+            "rateDivisor": 1
+        },
+        {
+            "components": [
+                {"name": "SOE dividends and profits", "value": 1636000, "unit": "$K"}
+            ],
+            "slug": "soeDividends",
+            "name": "SOE Dividends and Profits",
+            "description": "Returns from Crown-owned companies. No policy rate - always counted in full."
+        },
+        {
+            "components": [
+                {"name": "Investment income", "value": 7039000, "unit": "$K"}
+            ],
+            "slug": "investmentIncome",
+            "name": "Investment Income",
+            "description": "Interest and investment returns earned by the Crown. No policy rate - always counted in full."
+        },
+        {
+            "components": [
+                {"name": "Sale of goods and services", "value": 26085000, "unit": "$K"}
+            ],
+            "slug": "salesOfGoods",
+            "name": "Sale of Goods and Services",
+            "description": "Fees the Crown charges for services rendered. No policy rate - always counted in full."
+        },
+        {
+            "components": [
+                {"name": "Fees, fines and penalties", "value": 275000, "unit": "$K"}
+            ],
+            "slug": "feesFinesPenalties",
+            "name": "Fees, Fines and Penalties",
+            "description": "Court fines and child support/working for families penalties. No policy rate - always counted in full."
+        },
+        {
+            "components": [
+                {"name": "Petroleum and mineral royalties", "value": 107700, "unit": "$K"}
+            ],
+            "slug": "petroleumRoyalties",
+            "name": "Petroleum and Mineral Royalties",
+            "description": "Royalties from oil/gas/mineral extraction. Derived, not an official isolated figure (see assumptions). No policy rate - always counted in full."
+        }
+    ]
+}

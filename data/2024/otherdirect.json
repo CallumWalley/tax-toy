@@ -1,0 +1,66 @@
+{
+    "sources": [
+        {
+            "date": "2026",
+            "url": "https://www.labour.org.nz/election-policy-pages/capital-gains-tax",
+            "name": "Labour Party 2026 tax policy - Capital Gains Tax",
+            "assumptions": "A flat 28% rate on residential-investment and commercial property gains only (family home, farms, KiwiSaver, shares, business assets, and inheritances excluded), effective 1 July 2027. Labour's own steady-state revenue estimate is $969m/year by year 3 of a ramp ($100m year 1, $385m year 2, $969m year 3). The CGT taxable-income base above ($3,379,604K) is back-cast from otherdirect_2025.json's base via this project's 2.4% growth proxy, since the policy isn't tied to a specific historical year."
+        },
+        {
+            "date": "February 2019",
+            "url": "https://taxworkinggroup.govt.nz/sites/default/files/2019-03/twg-final-report-voli-feb19-v1.pdf",
+            "name": "Tax Working Group - Future of Tax: Final Report",
+            "assumptions": "Modelled a broader, realisation-based capital gains tax covering land (except the family home), shares, and business assets - not just investment property - with revenue projected to rise from $0.4bn (2021/22) to $5.9bn (2030/31), reaching 1.2% of GDP by year 10 (Table 5.2). Unlike Labour's 2026 policy above, the TWG's design taxed gains at each taxpayer's own marginal income tax rate rather than one flat rate, so its revenue path can't be back-derived into a single taxable base for a flat-rate slider without inventing a rate the TWG itself never used. No 2026 party proposes a CGT this broad, and no post-2019 official update to these figures has been published."
+        },
+        {
+            "date": "1 April 2024",
+            "url": "",
+            "name": "IRD - Trustee tax rate",
+            "assumptions": "The trustee tax rate rose to 39% (from 33%) on 1 April 2024; the first $10,000 of trustee income is still taxed at 33%. The most recently published aggregate trustee income figure is for the tax year ended 31 March 2024 ($40.6bn) - the base used above - predating the rate change."
+        },
+        {
+            "date": "20 September 2024",
+            "url": "https://www.treasury.govt.nz/sites/default/files/2024-10/fsgnz-2024.pdf",
+            "name": "End of Year Financial Statement",
+            "assumptions": "FBT revenue: $838m for the year ended 30 June 2024. The FBT taxable base above ($1,310,809K) is back-calculated as this revenue divided by the 63.93% single rate."
+        },
+        {
+            "date": "Tax year ended March 2024",
+            "url": "",
+            "name": "Figure.NZ (IRD-sourced FBT revenue)",
+            "assumptions": "Reports FBT revenue of $825m for the same tax year, about $13m below the $838m FSGNZ figure used above - an unresolved discrepancy, possibly reflecting the different March/June year-end conventions."
+        },
+        {
+            "date": "Current",
+            "url": "",
+            "name": "IRD - Fringe benefit tax rates",
+            "assumptions": "The 63.93% single rate and 49.25% alternate/pooled rate are both real current options. This dataset's back-derived FBT base assumes every employer uses the single rate, so the true base is somewhat larger."
+        }
+    ],
+    "data": [
+        {
+            "components": [
+                {"name": "Capital gains (investment property)", "value": 3379604, "unit": "$K"}
+            ],
+            "slug": "cgt",
+            "name": "Capital Gains Tax",
+            "description": "Tax on net profit from selling capital assets, such as investment property."
+        },
+        {
+            "components": [
+                {"name": "Trustee income", "value": 40600000, "unit": "$K"}
+            ],
+            "slug": "trust",
+            "name": "Trust Tax",
+            "description": "Tax on income retained by a trust, taxed at the trustee rate."
+        },
+        {
+            "components": [
+                {"name": "Fringe benefits provided", "value": 1310809, "unit": "$K"}
+            ],
+            "slug": "fbt",
+            "name": "Fringe Benefit Tax",
+            "description": "Tax on employers for non-cash benefits provided to employees."
+        }
+    ]
+}

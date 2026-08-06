@@ -72,7 +72,18 @@ input.income-bracket-percent, input.income-bracket-range {
   flex-direction: column;
 }
 
-#income-bracket-add {
+.assumptions {
+  font-size: small;
+  font-style: italic;
+  color: dimgray;
+  margin-bottom: 1em;
+}
+
+.assumptions:empty {
+  display: none;
+}
+
+#income-bracket-add, #wealth-bracket-add {
   margin: auto;
   display: flex;
 }
@@ -92,6 +103,31 @@ h2 {
 
 .slidecontainer {
   width: 100%; /* Width of the outside container */
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9em;
+}
+.slider-label output {
+  font-weight: bold;
+}
+
+/* Manually-drawn tick marks - a native <datalist> list doesn't render on
+a slider styled with -webkit-appearance: none, so increments are drawn
+as their own evenly-spaced row instead. */
+.tick-marks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+  margin-top: 2px;
+}
+.tick-marks span {
+  width: 1px;
+  height: 5px;
+  background-color: black;
+  opacity: 0.5;
 }
 
 /* The slider itself */
