@@ -4,21 +4,20 @@
         {
             "label": "Compile SCSS",
             "type": "shell",
-            "command": "sass",
+            "command": "npm",
             "args": [
-                "style.scss",
-                "style.css"
+                "run",
+                "build"
             ],
             "problemMatcher": []
         },
         {
             "label": "Serve",
             "type": "shell",
-            "command": "python3",
+            "command": "npm",
             "args": [
-                "-m",
-                "http.server",
-                "8000"
+                "run",
+                "serve"
             ],
             "isBackground": true,
             "problemMatcher": []
