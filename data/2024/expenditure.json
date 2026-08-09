@@ -1,0 +1,366 @@
+{
+    "sources": [
+        {
+            "date": "30 September 2024",
+            "url": "https://www.treasury.govt.nz/sites/default/files/2024-10/fsgnz-2024.pdf",
+            "name": "Financial Statements of the Government of New Zealand for the Year Ended 30 June 2024 (Treasury B.11), 'Fiscal Indicator Analysis - Expenses by Functional Classification'",
+            "assumptions": "All functional-classification categories below (health, education, etc.) and Finance costs are Core Crown actuals for FY2024 (excludes Crown entities/SOEs, e.g. Kaainga Ora, health entities - matches the scope this project's revenue side already taxes). Core Crown total expenses (excl. losses) is $138,998m, which these categories sum to exactly - Finance costs ($8,943m) is NOT one of the OECD functional categories but Treasury includes it in this same table so the total ties out; omitting it would silently under-count by ~$8.9bn, the same class of gap already found and fixed in this project's otherIndirectResidual. Figures converted from $NZDm to $K by x1000."
+        },
+        {
+            "date": "August 2025 (MSD Annual Report 2025, FY2024 comparative column)",
+            "url": "https://www.msd.govt.nz/documents/about-msd-and-our-work/publications-resources/corporate/annual-report/2025/msd-annual-report-2025.pdf",
+            "name": "Ministry of Social Development Annual Report 2025 (G.60), 'Benefits or Related Expenses' note, p.182",
+            "assumptions": "NZ Superannuation ($21,574,368k), Jobseeker Support and Emergency Benefit combined ($4,062,221k - MSD does not separate these), Sole Parent Support ($2,097,032k), Supported Living Payment ($2,530,299k), Accommodation Assistance ($2,410,658k), and a residual 'Other Benefits or Related Expenses' line ($948,233k, which bundles the Winter Energy Payment with other unspecified benefits - WEP's own figure can't be isolated from this table) are all real MSD actuals. These six lines sum to $33,622,811k, well short of the Treasury functional 'Social security and welfare' total below ($44,589,000k) - the gap is other MSD/Vote items never itemised here (e.g. disability allowance, student allowance) plus Working for Families (see next source), not a data error. Modelled as an explicit 'welfareResidual' component rather than silently dropped, mirroring this project's otherIndirectResidual precedent."
+        },
+        {
+            "date": "3 September 2025 (data extract, 2024 tax year = year ended 31 March 2024)",
+            "url": "https://www.ird.govt.nz/about-us/tax-statistics/social-policy/working-for-families-statistics",
+            "name": "Inland Revenue - Working for Families statistics",
+            "assumptions": "Working for Families Tax Credits: $3,043m paid to 328,400 claiming families, 2024 tax year (year ended 31 March 2024 - IRD's tax-year convention, not the 30 June Crown fiscal year used everywhere else in this project, same kind of vintage mismatch already flagged for FBT/trust tax). Per this project's convention (tax credits/exemptions belong under the tax they offset, not under expenditure), WFF is NOT one of the expenditure components below - it's subtracted out of the 'welfareResidual' component here so it isn't double-counted (once as a credit reducing income tax, and again baked into the unmodelled welfare residual), and is intended to be modelled as a credit against income tax revenue instead. The 2025 tax year figure isn't published yet as of this extract - both FY2024 and FY2025 expenditure files reuse this same 2024-tax-year figure for the subtraction, flagged as an approximation."
+        },
+        {
+            "date": "July 2024",
+            "url": "https://www.msd.govt.nz/documents/about-msd-and-our-work/publications-resources/statistics/benefit/2024/benefit-fact-sheets-snapshot-june-2024.pdf",
+            "name": "MSD Benefit Fact Sheets Snapshot, June 2024 Quarter",
+            "assumptions": "Recipient counts as at end of June 2024: Jobseeker Support 196,434; Sole Parent Support 76,959; Supported Living Payment 103,152. Used to back-derive each benefit's real $/year/recipient rate (spend / recipients) below, the same back-derivation technique already used elsewhere in this project (e.g. cgt/land/fbt base-from-revenue). NZ Superannuation recipient counts are not published in this text-extractable Snapshot table (MSD's NZS/Veteran's Pension client counts are Excel-only) - a genuine gap, not resolved here."
+        },
+        {
+            "date": "2023 Census-informed estimate",
+            "url": "https://www.stats.govt.nz/news/one-million-people-aged-65-by-2028/",
+            "name": "Stats NZ - 'One million people aged 65+ by 2028'",
+            "assumptions": "828,600 people aged 65+ (2023) is the only reasonably confirmed 65+ population figure found - used as a proxy for NZ Superannuation recipients (NZS is universal/non-means-tested for eligible residents 65+, so this is a reasonable stand-in, same technique as general.json's 15+ working-age proxy for UBI). Held flat across both FY2024 and FY2025 in this dataset since no separate per-year figure was obtainable via available tools - understates the true count given the growing 65+ cohort (Stats NZ projects 1 million by 2029), so the resulting $/year/recipient rate is itself an overestimate. A genuine precision gap, flagged rather than guessed at finer resolution."
+        },
+        {
+            "date": "30 October 2025 (release covering year ended 30 June 2024 comparative)",
+            "url": "https://www.stats.govt.nz/information-releases/national-population-estimates-at-30-june-2024-2018-base/",
+            "name": "Stats NZ - National population estimates: At 30 June 2024 (2018-base)",
+            "assumptions": "5,338,500 - New Zealand's estimated resident population at 30 June 2024, on Stats NZ's then-current 2018-Census base. Used as the denominator for every 'direct spend' functional category's $/capita/year rate below (health, education, etc.) - this is a genuine real unit, not an abstract %-of-baseline. Flagged precision caveat: the FY2025 population figure (see that year's file) appears to be on a newer, post-2023-Census rebase, and the two headline figures imply a small population *decrease* year-on-year that is more likely a base-methodology artifact than real - not independently resolved in this pass since Stats NZ's release pages could not be fetched in full (JS-rendered), only search-summarised."
+        },
+        {
+            "date": "Search-summarised, not independently verified",
+            "url": "https://www.stats.govt.nz/information-releases/government-finance-statistics-general-government-year-ended-june-2025/",
+            "name": "Stats NZ - Government finance statistics (general government): Year ended June 2025 (nominal expenditure GDP)",
+            "assumptions": "Nominal GDP $420,100m (year ended June 2024) used only for the informational 'defence as % of GDP' readout in meta, not for any expenditure calculation. Moderate confidence only - obtained via search-tool summarisation, not a direct fetch of the release tables. Also note: this FSGNZ-derived 'Defence' functional-expense figure ($3,163m, 0.75% of this GDP figure) is Core Crown *operating expenses* only - it is NOT the same thing as the internationally-reported ~1.19%-of-GDP 'defence spending' figure (SIPRI/World Bank series) that the real-world '2% of GDP' political target refers to, which likely includes capital/acquisition spending and a different Vote-level scope. Don't conflate the two - the %-of-GDP shown against this dataset's defence category will read much lower than the political target for that reason, not because of a data error."
+        }
+    ],
+    "meta": {
+        "population": 5338500,
+        "gdp": 420100000,
+        "nzsRecipientProxy": 828600
+    },
+    "data": [
+        {
+            "components": [
+                {
+                    "name": "Health spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "health",
+            "name": "Health",
+            "description": "Core Crown health functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "core"
+        },
+        {
+            "components": [
+                {
+                    "name": "Education spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "education",
+            "name": "Education",
+            "description": "Core Crown education functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "core"
+        },
+        {
+            "components": [
+                {
+                    "name": "NZ Superannuation recipients (65+ proxy)",
+                    "value": 828600,
+                    "unit": "people"
+                }
+            ],
+            "slug": "nzSuper",
+            "name": "NZ Superannuation",
+            "description": "Universal pension for eligible residents 65 and over.",
+            "rateUnit": "$/year/recipient",
+            "rateDivisor": 1000,
+            "group": "welfare"
+        },
+        {
+            "components": [
+                {
+                    "name": "Jobseeker Support and Emergency Benefit recipients",
+                    "value": 196434,
+                    "unit": "people"
+                }
+            ],
+            "slug": "jobseeker",
+            "name": "Jobseeker Support",
+            "description": "Main working-age benefit for people who are able to work but not in full-time employment.",
+            "rateUnit": "$/year/recipient",
+            "rateDivisor": 1000,
+            "group": "welfare"
+        },
+        {
+            "components": [
+                {
+                    "name": "Sole Parent Support recipients",
+                    "value": 76959,
+                    "unit": "people"
+                }
+            ],
+            "slug": "soleParent",
+            "name": "Sole Parent Support",
+            "description": "Benefit for single parents caring for a child under 14.",
+            "rateUnit": "$/year/recipient",
+            "rateDivisor": 1000,
+            "group": "welfare"
+        },
+        {
+            "components": [
+                {
+                    "name": "Supported Living Payment recipients",
+                    "value": 103152,
+                    "unit": "people"
+                }
+            ],
+            "slug": "supportedLiving",
+            "name": "Supported Living Payment",
+            "description": "Benefit for people with a significant health condition, injury, or disability.",
+            "rateUnit": "$/year/recipient",
+            "rateDivisor": 1000,
+            "group": "welfare"
+        },
+        {
+            "components": [
+                {
+                    "name": "Accommodation Assistance spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "accommodation",
+            "name": "Accommodation Assistance",
+            "description": "MSD's combined Accommodation Supplement and related accommodation assistance line - not broken out separately in published data.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "welfare"
+        },
+        {
+            "components": [
+                {
+                    "name": "Other benefits spend (incl. Winter Energy Payment)",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "otherBenefits",
+            "name": "Other Benefits (incl. Winter Energy Payment)",
+            "description": "MSD's residual benefit line - bundles the Winter Energy Payment with other unspecified benefits; WEP's own figure can't be isolated from published data.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "welfare"
+        },
+        {
+            "components": [
+                {
+                    "name": "Unmodelled welfare spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "welfareResidual",
+            "name": "Other Welfare (unmodelled)",
+            "description": "The gap between Treasury's 'Social security and welfare' functional total and this dataset's modelled MSD benefit lines (after also subtracting Working for Families, modelled as a tax credit instead) - other MSD/Vote items never itemised here, not a data error.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "welfare"
+        },
+        {
+            "components": [
+                {
+                    "name": "Core government services spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "coreGovernmentServices",
+            "name": "Core Government Services",
+            "description": "Core Crown core government services functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Law and order spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "lawAndOrder",
+            "name": "Law and Order",
+            "description": "Core Crown law and order functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Defence spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "defence",
+            "name": "Defence",
+            "description": "Core Crown defence functional expenses (operating expenses only - see sources for why this differs from the internationally-reported %-of-GDP defence figure).",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Transport and communications spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "transport",
+            "name": "Transport and Communications",
+            "description": "Core Crown transport and communications functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Housing and community development spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "housingCommunity",
+            "name": "Housing and Community Development",
+            "description": "Core Crown housing and community development functional expenses (excludes Kainga Ora, a Crown entity outside Core Crown scope).",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Economic and industrial services spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "economicIndustrial",
+            "name": "Economic and Industrial Services",
+            "description": "Core Crown economic and industrial services functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Primary services spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "primaryServices",
+            "name": "Primary Services",
+            "description": "Core Crown primary services functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Heritage, culture and recreation spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "heritageCultureRecreation",
+            "name": "Heritage, Culture and Recreation",
+            "description": "Core Crown heritage, culture and recreation functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Environmental protection spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "environmentalProtection",
+            "name": "Environmental Protection",
+            "description": "Core Crown environmental protection functional expenses.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "GSF pension expenses spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "gsfPensions",
+            "name": "GSF Pensions",
+            "description": "Government Superannuation Fund pension expenses - a small, closed legacy public-service pension scheme.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Other expenses spend",
+                    "value": 5338500,
+                    "unit": "people"
+                }
+            ],
+            "slug": "otherExpenses",
+            "name": "Other",
+            "description": "Treasury's small residual 'Other' functional-expense category.",
+            "rateUnit": "$/capita/year",
+            "rateDivisor": 1000,
+            "group": "other"
+        },
+        {
+            "components": [
+                {
+                    "name": "Finance costs",
+                    "value": 8943000,
+                    "unit": "$K"
+                }
+            ],
+            "slug": "financeCosts",
+            "name": "Finance Costs",
+            "description": "Interest on Crown debt - driven by debt stock and interest rates, not a policy lever any party sets directly. Not editable (no rate slider).",
+            "group": "other"
+        }
+    ]
+}

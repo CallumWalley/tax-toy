@@ -49,15 +49,27 @@ td {
 .main {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    align-items: flex-start;
 }
 
+// Fixed width, never grows/shrinks/wraps - the sidebar (Total/People) must
+// always stay visible alongside the tax content, not wrap onto a row below
+// it once the window gets narrow. Wide enough for two 200px-wide stacked-bar
+// SVGs side by side (see .stacked-bar-columns) plus padding/border.
 .right {
-    flex-grow: 1;
+    flex: 0 0 480px;
 }
 
+// Takes whatever width is left over; min-width:0 lets it actually shrink
+// below its content's natural size (the flex default of min-width:auto
+// would otherwise force this to its full content width, pushing .right off
+// the edge of the viewport instead of leaving the sidebar in place), and
+// overflow-x:auto scrolls the wide tax charts/tables internally instead of
+// growing the whole page - so .right never has to wrap to make room.
 .center {
-    flex-grow: 2;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
 }
 input.income-bracket-percent, input.income-bracket-range {
     width: 4em;
@@ -90,7 +102,44 @@ input.income-bracket-percent, input.income-bracket-range {
     flex-direction: column;
 }
 
-// Drawer (right-hand collapsible panel)
+// Top-level nav (Tax/Income vs Expenses) - same tab pattern as
+// .tab-container-buttons/.button__tab/.tab, one level up.
+.top-tab-container-buttons {
+    @extend .tab-container-buttons;
+}
+
+.top-tab-button {
+    @extend .button__tab;
+    font-size: 1.1em;
+}
+
+.top-tab-button.active {
+    background-color: seashell;
+    margin-bottom: -2px;
+    border-bottom: seashell 2px solid;
+}
+
+.top-tab {
+    @extend .tab;
+}
+
+// Expenses tab's own sub-tabs (Health & Education / Welfare & Benefits /
+// Other Spending) - same tab pattern again, one level below .top-tab.
+.expense-tab-button {
+    @extend .button__tab;
+}
+
+.expense-tab-button.active {
+    background-color: seashell;
+    margin-bottom: -2px;
+    border-bottom: seashell 2px solid;
+}
+
+.expense-tab {
+    @extend .tab;
+}
+
+// Drawer (right-hand panel, always visible - fixed-sidebar layout pattern)
 .drawer {
     display: flex;
     flex-direction: row;
@@ -99,29 +148,10 @@ input.income-bracket-percent, input.income-bracket-range {
     min-width: 0;
 }
 
-.drawer.collapsed {
-    flex-grow: 0;
-    flex-basis: auto;
-}
-
-.drawer-handle {
-    flex: 0 0 auto;
-    width: 1.5em;
-    background-color: white;
-    border: none;
-    border-right: black 2px solid;
-    cursor: pointer;
-    font-size: 1.2em;
-}
-
 .drawer-content {
     flex: 1 1 auto;
     min-width: 0;
     padding: 1em;
-}
-
-.drawer.collapsed .drawer-content {
-    display: none;
 }
 
 .drawer-tab-container-buttons {
@@ -224,7 +254,54 @@ h2{
   
   .slider::-moz-range-thumb {
     width: 6px;
-    height: 25px; 
-    background: #6c5cff; 
+    height: 25px;
+    background: #6c5cff;
     cursor: pointer;
+  }
+
+  // Two stacked bars side by side rather than stacked vertically - used by
+  // both the Total tab (Revenue/Expenditure) and the People tab (Income/
+  // Expenditure). Each is a fixed 200px-wide SVG (createStackedBarPlot), so
+  // two fit comfortably within .right's fixed 480px width.
+  .stacked-bar-columns {
+    display: flex;
+    gap: 1em;
+  }
+
+  // People tab
+  .person-dropdown-container {
+    display: flex;
+  }
+
+  .person-card {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0.5em 0;
+  }
+
+  .person-portrait {
+    font-size: 3em;
+    line-height: 1;
+  }
+
+  // Shared hover tooltip for every stacked-bar plot (Total/Expenditure/
+  // People) - see main.js's chartTooltip. Positioned via inline left/top set
+  // on mousemove; hidden by default, not just transparent, so it can't
+  // intercept clicks or get found by assistive tech while inactive.
+  .chart-tooltip {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 0.4em 0.6em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    white-space: nowrap;
+    z-index: 10;
+
+    &.visible {
+      display: block;
+    }
   }

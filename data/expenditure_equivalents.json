@@ -1,0 +1,21 @@
+{
+    "notes": "Illustrative 'what does this actually buy' unit-cost conversions for the expenditure tab - NOT sourced data like every other file in this project",
+    "equivalents": {
+        "defence": { "unitCost": 600000000, "unit": "frigate", "unitPlural": "frigates", "sourced": false, "note": "Loosely anchored to reported ANZAC-class frigate replacement cost estimates (NZD ~$600m-1bn+ each depending on spec) - rounded down for a cleaner number, not a specific costed procurement." },
+        "health": { "unitCost": 25000, "unit": "hip replacement", "unitPlural": "hip replacements", "sourced": false, "note": "Rough public-hospital elective-surgery cost order of magnitude, not a specific MOH costing." },
+        "education": { "unitCost": 95000, "unit": "teacher's annual salary", "unitPlural": "teachers' annual salaries", "sourced": false, "note": "Approximate all-in (salary + on-costs) figure, not tied to a specific pay-scale step." },
+        "lawAndOrder": { "unitCost": 140000, "unit": "police officer", "unitPlural": "police officers", "sourced": false, "note": "Rough salary+overhead figure, not an official NZ Police costing." },
+        "transport": { "unitCost": 30000000, "unit": "km of new motorway", "unitPlural": "km of new motorway", "sourced": false, "note": "NZ motorway construction costs vary hugely by terrain/urban vs rural - this is a round midpoint guess, not a Waka Kotahi estimate." },
+        "housingCommunity": { "unitCost": 700000, "unit": "new state house", "unitPlural": "new state houses", "sourced": false, "note": "Rough Kainga Ora-style build cost order of magnitude, not an official per-unit figure." },
+        "coreGovernmentServices": { "unitCost": 110000, "unit": "public servant", "unitPlural": "public servants", "sourced": false, "note": "Generic back-office salary+overhead guess, not tied to any specific agency." },
+        "economicIndustrial": { "unitCost": 50000, "unit": "small business support grant", "unitPlural": "small business support grants", "sourced": false, "note": "Invented round figure - illustrative only." },
+        "primaryServices": { "unitCost": 15000, "unit": "farm biosecurity inspection programme", "unitPlural": "farm biosecurity inspection programmes", "sourced": false, "note": "Invented round figure - illustrative only." },
+        "heritageCultureRecreation": { "unitCost": 2000000, "unit": "local museum exhibition", "unitPlural": "local museum exhibitions", "sourced": false, "note": "Invented round figure - illustrative only." },
+        "environmentalProtection": { "unitCost": 5000, "unit": "hectare of native forest replanted", "unitPlural": "hectares of native forest replanted", "sourced": false, "note": "Loosely in line with reported native reforestation cost-per-hectare ranges, not a specific MFE costing." },
+        "gsfPensions": { "unitCost": 30000, "unit": "retired public servant's pension top-up", "unitPlural": "retired public servants' pension top-ups", "sourced": false, "note": "Invented round figure - illustrative only." },
+        "otherExpenses": { "unitCost": 1000000, "unit": "unspecified miscellaneous Crown programme", "unitPlural": "unspecified miscellaneous Crown programmes", "sourced": false, "note": "Deliberately vague - this category itself is a small catch-all." },
+        "welfareResidual": { "unitCost": 300, "unit": "week of benefit support", "unitPlural": "weeks of benefit support", "sourced": false, "note": "Rough order-of-magnitude, not tied to any specific benefit rate." },
+        "accommodation": { "unitCost": 5000, "unit": "year of Accommodation Supplement for one household", "unitPlural": "years of Accommodation Supplement for one household", "sourced": false, "note": "Rough order-of-magnitude, not a real published average payment." },
+        "otherBenefits": { "unitCost": 700, "unit": "Winter Energy Payment season for one household", "unitPlural": "Winter Energy Payment seasons for one household", "sourced": false, "note": "Approximates the real WEP season total for a couple/family, but this category is a bundled residual (also includes other unspecified benefits), so treat as very rough." }
+    }
+}

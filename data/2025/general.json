@@ -1,0 +1,14 @@
+{
+    "sources": [
+        {
+            "date": "6 August 2025",
+            "url": "https://www.stats.govt.nz/information-releases/household-labour-force-survey-estimated-working-age-population-june-2025-quarter/",
+            "name": "Stats NZ - Household Labour Force Survey estimated working-age population: June 2025 quarter",
+            "assumptions": "4,299,000 - the usually resident, non-institutionalised, civilian population of New Zealand aged 15 years and over (June 2025 quarter) - a slight year-on-year fall from June 2024's 4,316,000, consistent with reported net migration slowdown over 2025. Used here as a stand-in for 'adults' generally, since Stats NZ doesn't publish a simple 18+ headline figure the way it does for the labour force's 15+ working-age population - this slightly overstates true 18+ adults (it includes 15-17 year olds) and doesn't exclude the small institutionalised population that would still be UBI-eligible. Used as the recipient count for the income tax panel's UBI slider (amount x recipients = government expenditure)."
+        }
+    ],
+    "meta": {
+        "adultPopulation": 4299000
+    },
+    "data": []
+}

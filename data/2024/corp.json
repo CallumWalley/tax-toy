@@ -31,6 +31,9 @@
             "assumptions": "Independently estimates the same large-company rate rise at $1.37-1.57bn/year, bracketing the Green Party's own figure. corpLarge's taxable-income base (~$29.5bn) is back-derived as annual_revenue / (0.33-0.28) from these estimates - no IRD/Stats NZ company-tax-by-turnover-band split exists publicly to source it independently. That $29.5bn is subtracted out of 'corp's Gross Corporate figure below, so 'corp' represents only the <=$30M-turnover cohort and the two components sum back to the real FY total - refunds aren't split by company size (no data exists to do so), so they stay wholly under 'corp'."
         }
     ],
+    "meta": {
+        "corpLargeThreshold": 30000000
+    },
     "data": [
         {
             "components": [

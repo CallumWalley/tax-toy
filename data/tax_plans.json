@@ -20,7 +20,9 @@
             "otherDirect": { "cgt": 0, "trust": 33, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         },
         {
             "name": "2021 [Labour]",
@@ -43,7 +45,9 @@
             "otherDirect": { "cgt": 0, "trust": 33, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         },
         {
             "name": "2023 [Proposed - Greens]",
@@ -67,7 +71,9 @@
             "otherDirect": { "cgt": 33, "trust": 39, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         },
         {
             "name": "31 July 2024 [Current - National]",
@@ -90,7 +96,9 @@
             "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         },
         {
             "name": "2026 [Proposed - Labour]",
@@ -113,7 +121,9 @@
             "otherDirect": { "cgt": 28, "trust": 39, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         },
         {
             "name": "2026 [Proposed - Greens]",
@@ -139,7 +149,9 @@
             "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         },
         {
             "name": "2026 [Proposed - ACT]",
@@ -159,7 +171,9 @@
             "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         },
         {
             "name": "2026 [Proposed - NZ First]",
@@ -182,7 +196,9 @@
             "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         },
         {
             "name": "2026 [Proposed - TOP]",
@@ -203,7 +219,9 @@
             "otherDirect": { "cgt": 0, "trust": 39, "fbt": 63.93 },
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
-            "evRucExempt": false
+            "evRucExempt": false,
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "ubi": 0
         }
     ]
 }

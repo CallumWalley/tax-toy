@@ -38,6 +38,14 @@ const datasets = {
     2024: await loadDataset("./data/2024/nontaxrevenue.json"),
     2025: await loadDataset("./data/2025/nontaxrevenue.json"),
   },
+  general: {
+    2024: await loadDataset("./data/2024/general.json"),
+    2025: await loadDataset("./data/2025/general.json"),
+  },
+  expenditure: {
+    2024: await loadDataset("./data/2024/expenditure.json"),
+    2025: await loadDataset("./data/2025/expenditure.json"),
+  },
 };
 
 const availableYears = [2024, 2025];
@@ -86,11 +94,27 @@ plans.forEach(a => {
 
 let planCurrent = plans[3];
 
+// People tab: illustrative example people (not year-scoped, since a
+// person's own financial facts don't depend on the FY data vintage) - see
+// data/people.json's top-level "note" for why these figures aren't sourced
+// the way every other dataset in data/ is.
+const people = (await d3.json("./data/people.json")).people;
+people.forEach(p => { p.isCustom = false; });
+let personCurrent = people[1];
+
 let data = {
   totals: {
     income: 0, gst: 0, corp: 0, other: metaFor("otherIndirect").otherIndirectResidual ?? 0,
     wealth: 0, land: 0, otherDirect: 0, otherIndirect: 0,
     nonTaxRevenue: 0
+  },
+  // Mirrors `totals` - government spending rather than revenue. Not netted
+  // against `totals` yet - see TODO.md. UBI aside, the rest of this object's
+  // keys are populated dynamically by calculateMultiComponentTax("govtSpending")
+  // - one key per functional spending category (Health, Education, etc.),
+  // not one lump sum - see multiComponentConfig.govtSpending's perCategoryTotals.
+  expenditures: {
+    UBI: 0
   },
   income: { brackets: [] },
   gst: [],
@@ -99,7 +123,8 @@ let data = {
   land: [],
   otherDirect: [],
   otherIndirect: [],
-  nonTaxRevenue: []
+  nonTaxRevenue: [],
+  govtSpending: []
 };
 
 // Main plot window.
@@ -114,7 +139,7 @@ const handleWidth = 12;
 // Bracket tax types: a draggable-SVG-chart + editable table over a
 // progressive bracket ladder (top + percent per bracket, bottom of each
 // bracket implied by the previous bracket's top).
-function createBracketPlot(type, containerId, xDomain) {
+function createBracketPlot(type, containerId, xDomain, rateDomain = [0, 100], unitLabel = "") {
   const plot = d3
     .select(containerId)
     .append("svg")
@@ -124,14 +149,53 @@ function createBracketPlot(type, containerId, xDomain) {
     .attr("transform", `translate(${margin}, ${margin})`);
 
   const xScale = d3.scaleLinear().domain(xDomain).range([0, width]);
-  const yScaleRate = d3.scaleLinear().domain([0, 100]).range([height, 0]);
+  const yScaleRate = d3.scaleLinear().domain(rateDomain).range([height, 0]);
   const yScaleCount = d3.scaleLinear().domain([0, 1]).range([height, 0]);
 
   plot.append("g").attr("class", "x-axis").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale));
   plot.append("g").attr("class", "y-axis").call(d3.axisLeft(yScaleRate));
   const yAxisCount = plot.append("g").attr("class", "y-axis").attr("transform", `translate(${width},0)`).call(d3.axisRight(yScaleCount));
 
+  // Reference line at 0% so a negative-rate bracket (if a type's rateDomain
+  // ever dips below 0 again) reads as "below the line" rather than looking
+  // like a rendering glitch. Skipped when the rate axis bottoms out at 0%
+  // (every type today), since it would just coincide with the x-axis.
+  if (rateDomain[0] < 0) {
+    plot.append("line")
+      .attr("class", "zero-rate-line")
+      .attr("x1", 0).attr("x2", width)
+      .attr("y1", yScaleRate(0)).attr("y2", yScaleRate(0))
+      .attr("stroke", "#999").attr("stroke-dasharray", "4,3");
+  }
+
+  // Axis titles - unitLabel-driven so income/wealth both get real units
+  // instead of bare tick numbers.
+  plot.append("text")
+    .attr("class", "axis-title")
+    .attr("text-anchor", "middle")
+    .attr("x", width / 2).attr("y", height + margin - 10)
+    .text(`Income ($${unitLabel})`);
+  plot.append("text")
+    .attr("class", "axis-title")
+    .attr("text-anchor", "middle")
+    .attr("transform", `translate(${-margin + 15}, ${height / 2}) rotate(-90)`)
+    .text("Tax rate (%)");
+  plot.append("text")
+    .attr("class", "axis-title")
+    .attr("text-anchor", "middle")
+    .attr("transform", `translate(${width + margin - 10}, ${height / 2}) rotate(90)`)
+    .text(`People per $${unitLabel}`);
+
   const dataContainer = plot.append("g").attr("class", "bracket-data-container");
+
+  // The last bracket's rect/handle deliberately overflow past `width` (see
+  // rectWidth in drawBracketChart) for the "unbounded top bracket" look -
+  // clipped here to the plot's own bounds so that overflow stops at the
+  // chart edge instead of bleeding into the margin where the right-hand
+  // "People per $K" axis and title live.
+  const clipId = `bracket-clip-${type}`;
+  plot.append("clipPath").attr("id", clipId)
+    .append("rect").attr("x", 0).attr("y", 0).attr("width", width).attr("height", height);
 
   // Three persistent layers, appended once in this fixed order, so a newly
   // entered bracket's handle always paints above every bracket's rect -
@@ -139,9 +203,10 @@ function createBracketPlot(type, containerId, xDomain) {
   // draws within these layers instead of nesting each bracket's rect/handles
   // in their own <g>, which let a later bracket's rect visually and
   // hit-test-wise cover an earlier bracket's shared-boundary handle.
-  const rectLayer = plot.append("g").attr("class", "bracket-rect-layer");
-  const topHandleLayer = plot.append("g").attr("class", "bracket-tophandle-layer");
-  const rightHandleLayer = plot.append("g").attr("class", "bracket-righthandle-layer");
+  const rectLayer = plot.append("g").attr("class", "bracket-rect-layer").attr("clip-path", `url(#${clipId})`);
+  const topHandleLayer = plot.append("g").attr("class", "bracket-tophandle-layer").attr("clip-path", `url(#${clipId})`);
+  const rightHandleLayer = plot.append("g").attr("class", "bracket-righthandle-layer").attr("clip-path", `url(#${clipId})`);
+  const ubiLineLayer = plot.append("g").attr("class", "ubi-line-layer");
 
   // Created once per plot rather than on every drawBracketChart call - the
   // closures only capture `type`, which is fixed for this plot's lifetime.
@@ -151,20 +216,27 @@ function createBracketPlot(type, containerId, xDomain) {
   const dragRight = d3.drag().on("drag", function (event, d) {
     changeBracketRange(type, d.id, xScale.invert(event.x));
   });
+  const dragUbi = d3.drag().on("drag", function (event) {
+    changeUbi(type, xScale.invert(event.x));
+  });
 
   return {
     plot, xScale, yScaleRate, yScaleCount, yAxisCount, dataContainer,
-    rectLayer, topHandleLayer, rightHandleLayer, dragUp, dragRight,
+    rectLayer, topHandleLayer, rightHandleLayer, ubiLineLayer, dragUp, dragRight, dragUbi,
   };
 }
 
 // floor: implied bottom of bracket 0 (0 for income; wealth data includes
-// negative net worth, so its ladder starts below zero)
+// negative net worth, so its ladder starts below zero). Tax rate is always
+// shown/editable as 0-100% (createBracketPlot's rateDomain/changeBracketPercent's
+// minPercent default) - no bracket type currently allows negative rates.
+// ubiField marks which types have a UBI line/plan field (income only).
 const bracketConfig = {
   income: {
     datasetType: "income", bracketsField: "brackets", plotContainerId: "#plot-container",
     tableContainerId: "#income-bracket-table-container", addButtonId: "#income-bracket-add",
     assumptionsId: "#income-assumptions", xDomain: [0, 300], floor: 0, maxBrackets: 11, unitLabel: "K",
+    ubiField: "ubi",
   },
   wealth: {
     datasetType: "wealth", bracketsField: "wealthBrackets", plotContainerId: "#wealth-plot-container",
@@ -175,14 +247,31 @@ const bracketConfig = {
 
 const bracketPlots = {};
 Object.entries(bracketConfig).forEach(([type, cfg]) => {
-  bracketPlots[type] = createBracketPlot(type, cfg.plotContainerId, cfg.xDomain);
+  bracketPlots[type] = createBracketPlot(type, cfg.plotContainerId, cfg.xDomain, cfg.rateDomain, cfg.unitLabel);
 });
+
+// Shifts every band's from/to/avg up by this type's UBI amount (income
+// only) - models "everyone's income rises by the UBI amount" for both the
+// tax calc and the background histogram, so the two stay visually
+// consistent as the UBI line is dragged.
+function shiftedDatasetFor(type) {
+  const { datasetType, ubiField } = bracketConfig[type];
+  const raw = datasetFor(datasetType);
+  const shift = ubiField ? (planCurrent[ubiField] ?? 0) : 0;
+  return shift ? raw.map(b => ({ ...b, from: b.from + shift, to: b.to + shift, avg: b.avg + shift })) : raw;
+}
 
 function drawBracketHistogram(type) {
   // Redraw the background distribution bars for the current year.
-  const { datasetType } = bracketConfig[type];
-  const { xScale, yScaleCount, yAxisCount, dataContainer } = bracketPlots[type];
-  const dataset = datasetFor(datasetType);
+  const { xScale, yScaleRate, yScaleCount, yAxisCount, dataContainer } = bracketPlots[type];
+  const dataset = shiftedDatasetFor(type);
+  // Anchor the histogram's baseline to the 0% tax-rate line, not the bottom
+  // of the whole chart - income's rate axis now extends below zero, and the
+  // population histogram should still start at zero rather than bleeding
+  // into negative-rate territory. (No-op for wealth, whose rate axis already
+  // bottoms out at 0%, so zeroY === height there.)
+  const zeroY = yScaleRate(0);
+  yScaleCount.range([zeroY, 0]);
   // Domain is the max *density* (count/width), matching what's actually
   // plotted below - using raw count here would badly under-scale bars for
   // datasets with uneven bin widths (e.g. wealth's $50K-$8.5M-wide bands).
@@ -201,52 +290,146 @@ function drawBracketHistogram(type) {
     .attr("x", d => xScale(d.from))
     .attr("y", d => yScaleCount(d.count / (d.to - d.from)))
     .attr("width", d => xScale(d.to) - xScale(d.from))
-    .attr("height", d => height - yScaleCount(d.count / (d.to - d.from)))
+    .attr("height", d => zeroY - yScaleCount(d.count / (d.to - d.from)))
     .attr("fill", "lightblue");
 
   dataSelection.exit().remove();
 }
 
-// Draw total plot
-const totalPlot = d3.select("#total-container")
-  .append("svg")
-  .attr("width", 200)
-  .attr("height", 1000);
+// Shared setup for every single-column stacked-bar chart (government revenue
+// Total, government Expenditure, and - reused below - a selected person's
+// Income/Expenditure bars). `label` is the one fixed x-axis category every
+// bar in the plot stacks onto.
+function createStackedBarPlot(containerId, label) {
+  const plot = d3.select(containerId)
+    .append("svg")
+    .attr("width", 200)
+    .attr("height", 1000);
 
-const totalXScale = d3.scaleBand()
-  .range([0, 180])
-  .padding(0.1);
+  const xScale = d3.scaleBand()
+    .domain([label])
+    .range([0, 180])
+    .padding(0.1);
 
-const totalYScale = d3.scaleLinear()
-  .range([900, 0]);
+  const yScale = d3.scaleLinear()
+    .range([900, 0]);
 
-const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-totalPlot.append("g").attr("class", "y-axis").attr("transform", `translate(170,0)`).call(d3.axisRight(totalYScale));
+  const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+  plot.append("g").attr("class", "y-axis").attr("transform", `translate(170,0)`).call(d3.axisRight(yScale));
+
+  return { plot, xScale, yScale, colorScale, label };
+}
+
+// Single tooltip element shared by every stacked-bar plot (Total,
+// Expenditure, and both People bars) - cheaper than one per plot, and only
+// one can ever be visible at a time since hover is exclusive.
+const chartTooltip = d3.select("body")
+  .append("div")
+  .attr("class", "chart-tooltip");
+
+// Redraws a stacked-bar chart created by createStackedBarPlot from a flat
+// {itemName: value} object - each key becomes one stacked segment, in
+// object-key order. `domainMax` fixes the y-axis scale (government bars use
+// a stable value so they don't jitter); omit it to size the axis to this
+// draw's own total instead (needed for person bars, which vary hugely
+// between archetypes). `formatValue` formats a segment's value for its
+// tooltip. `categoryOf` maps an item name to the sub-tab/category it belongs
+// to (defaults to the item itself, i.e. no finer grouping than one segment
+// per category) - segments sharing a category are colour-shades of the same
+// hue rather than unrelated colours, and `categoryLabel` supplies that
+// category's display name for the tooltip. On-bar text labels used to do
+// this job but collided/vanished below a size threshold on the denser bars
+// (govtSpending, person expenditure) - a hover tooltip has no such limit.
+function drawStackedBar(refs, dataObj, { domainMax, formatValue, categoryOf = (name) => name, categoryLabel = (key) => key } = {}) {
+  const { plot, xScale, yScale, colorScale, label } = refs;
+
+  let cumulative = 0;
+  const stackedData = Object.entries(dataObj).map(([name, value]) => ({
+    name, value, category: categoryOf(name),
+    start: cumulative,
+    end: (cumulative += value),
+  }));
+
+  yScale.domain([0, domainMax ?? cumulative]);
+
+  const categories = [...new Set(stackedData.map(d => d.category))];
+  colorScale.domain(categories);
+
+  // Lightness position (0-1) of each item within its category's group of
+  // segments - a lone item in a category sits at mid-lightness, multiple
+  // items spread evenly across the range, so a category's segments read as a
+  // family of shades of the same hue.
+  const shadePosition = new Map();
+  categories.forEach(cat => {
+    const items = stackedData.filter(d => d.category === cat);
+    items.forEach((d, i) => shadePosition.set(d.name, items.length > 1 ? i / (items.length - 1) : 0.5));
+  });
+  const fillFor = (d) => {
+    const hsl = d3.hsl(colorScale(d.category));
+    hsl.l = 0.35 + shadePosition.get(d.name) * 0.4;
+    return hsl.toString();
+  };
+
+  const bars = plot.selectAll("rect").data(stackedData, d => d.name);
+
+  bars.join("rect")
+    .attr("x", xScale(label))
+    .attr("y", d => yScale(d.end))
+    .attr("height", d => yScale(d.start) - yScale(d.end))
+    .attr("width", xScale.bandwidth())
+    .attr("fill", fillFor)
+    .on("mouseenter", (event, d) => {
+      chartTooltip
+        .html(`<strong>${categoryLabel(d.category)}</strong><br>${d.name}: ${formatValue(d.value)}`)
+        .classed("visible", true);
+    })
+    .on("mousemove", (event) => {
+      chartTooltip.style("left", `${event.pageX + 12}px`).style("top", `${event.pageY + 12}px`);
+    })
+    .on("mouseleave", () => chartTooltip.classed("visible", false));
+
+  plot.selectAll(".y-axis").remove();
+}
+
+const totalBar = createStackedBarPlot("#total-container", "Total");
+const expenditureBar = createStackedBarPlot("#expenditure-container", "Expenditure");
+const personIncomeBar = createStackedBarPlot("#person-income-container", "Income");
+const personExpenditureBar = createStackedBarPlot("#person-expenditure-container", "Expenditure");
+
+// Shared setup for a "pick one item from a named list, by index" dropdown -
+// used for both the Tax Plan and People selectors, which differ only in
+// which list/current-item they bind to and what happens on selection.
+// Returns the redraw function (call it whenever the list or current item
+// changes, e.g. after adding a custom entry). Not used for the year
+// dropdown below - that selects by value/content, not list index, a
+// genuinely different shape.
+function createIndexedDropdown(containerId, id, list, getCurrent, onSelect) {
+  const select = d3.select(containerId)
+    .append("select")
+    .attr("id", id)
+    .on("change", function () { onSelect(list[this.value]); });
+
+  return function drawIndexedDropdown() {
+    const options = select.selectAll("option").data(list);
+
+    options
+      .enter()
+      .append("option")
+      .merge(options) // Merge enter and update selections
+      .text(d => d.name) // Set display text
+      .attr("value", (d, i) => i); // Set value
+
+    select.node().selectedIndex = list.indexOf(getCurrent());
+    options.exit().remove();
+  };
+}
 
 // Draw plan dropdown
 const dropdownContainer = d3.select("#dropdown-container");
-const dropdown = dropdownContainer
-  .append("select")
-  .attr("id", "dropdown-menu")
-  .on("change", function () {
-    planCurrent = plans[this.value];
-    recalculateAll();
-  });
-
-function drawDropdown() {
-  // Redraw the select income tax plan dropdown
-  const options = dropdown.selectAll("option").data(plans);
-
-  options
-    .enter()
-    .append("option")
-    .merge(options) // Merge enter and update selections
-    .text(d => d.name) // Set display text
-    .attr("value", (d, i) => i); // Set value
-
-  dropdown.node().selectedIndex = plans.indexOf(planCurrent);
-  options.exit().remove();
-}
+const drawDropdown = createIndexedDropdown("#dropdown-container", "dropdown-menu", plans, () => planCurrent, (plan) => {
+  planCurrent = plan;
+  recalculateAll();
+});
 
 // Draw dataset-year dropdown
 dropdownContainer.append("h2").text("Data year:");
@@ -255,8 +438,6 @@ const yearDropdown = dropdownContainer
   .attr("id", "year-dropdown")
   .on("change", function () {
     currentYear = parseInt(this.value, 10);
-    drawBracketHistogram("income");
-    drawBracketHistogram("wealth");
     recalculateAll();
   });
 
@@ -277,7 +458,7 @@ function drawYearDropdown() {
 function calculateBracketTax(type) {
   // Should be called whenever this type's tax brackets changed.
   const { datasetType, bracketsField, floor, assumptionsId } = bracketConfig[type];
-  const dataset = datasetFor(datasetType);
+  const dataset = shiftedDatasetFor(type);
   const brackets = planCurrent[bracketsField];
   let cumulative = 0;
   const bracketResults = [];
@@ -297,6 +478,7 @@ function calculateBracketTax(type) {
   data.totals[type] = cumulative;
   drawBracketChart(type);
   drawBracketTable(type);
+  drawBracketHistogram(type);
   drawAssumptions(assumptionsId, datasetType);
 }
 
@@ -445,6 +627,36 @@ const multiComponentConfig = {
       mvLevy: { label: "Levy rate", unit: "$/vehicle", min: 0, max: 300, step: 1, tickStep: 50 },
     },
   },
+  // Government spending, not revenue - writes into data.expenditures (via
+  // totalsBucket/totalsKey) instead of data.totals, so it stacks separately
+  // from tax take on the drawer's Total tab rather than getting summed in.
+  govtSpending: {
+    datasetType: "expenditure",
+    // Rendered as three sub-tabs rather than one flat list - each dataset
+    // entry's own "group" field (see data/<year>/expenditure.json) picks
+    // which container/assumptions box it's drawn into, mirroring the
+    // Tax/Income tabs' one-intro-plus-assumptions-per-tab layout.
+    groupContainerIds: {
+      core: "#govtspending-core-table-container",
+      welfare: "#govtspending-welfare-table-container",
+      other: "#govtspending-other-table-container",
+    },
+    groupAssumptionsIds: {
+      core: "#govtspending-core-assumptions",
+      welfare: "#govtspending-welfare-assumptions",
+      other: "#govtspending-other-assumptions",
+    },
+    totalsBucket: "expenditures", perCategoryTotals: true,
+    sliderLabel: "Rate", sliderDefaults: { unit: "$/capita", min: 0, max: 10000, step: 10, tickStep: 2000 },
+    sliderOverrides: {
+      nzSuper: { label: "Rate", unit: "$/recipient", min: 0, max: 60000, step: 100, tickStep: 10000 },
+      jobseeker: { label: "Rate", unit: "$/recipient", min: 0, max: 40000, step: 100, tickStep: 10000 },
+      soleParent: { label: "Rate", unit: "$/recipient", min: 0, max: 40000, step: 100, tickStep: 10000 },
+      supportedLiving: { label: "Rate", unit: "$/recipient", min: 0, max: 40000, step: 100, tickStep: 10000 },
+      gsfPensions: { label: "Rate", unit: "$/capita", min: 0, max: 50, step: 0.1, tickStep: 10 },
+      otherExpenses: { label: "Rate", unit: "$/capita", min: 0, max: 100, step: 0.5, tickStep: 20 },
+    },
+  },
 };
 
 function sliderRangeFor(category, slug) {
@@ -476,6 +688,9 @@ const UNIT_SCALE = {
 // the app, rather than a UNIT_SCALE entry, since formatBillions already does
 // exactly this conversion.
 function formatTaxable(unit, value) {
+  // govtSpending's per-capita/per-recipient slugs store a raw headcount here,
+  // not a $K figure - formatBillions would misread it as billions of dollars.
+  if (unit === "people") return `${Math.round(value).toLocaleString()} people`;
   const scale = UNIT_SCALE[unit];
   if (!scale) return formatBillions(value);
   const raw = value * scale.multiplier;
@@ -487,45 +702,68 @@ function formatTaxable(unit, value) {
 }
 
 function calculateMultiComponentTax(category) {
-  const { datasetType, assumptionsId, baseAdjustments } = multiComponentConfig[category];
+  const { datasetType, assumptionsId, groupAssumptionsIds, baseAdjustments, totalsBucket = "totals", totalsKey = category, perCategoryTotals } = multiComponentConfig[category];
   const dataset = datasetFor(datasetType);
   const rates = planCurrent[category];
 
   let cumulativeTake = 0;
   const result = dataset.map(entry => {
     // A slug with no entry in planCurrent[category] has no policy rate at
-    // all (e.g. non-tax revenue) - treated as a fixed 100% pass-through.
+    // all (e.g. non-tax revenue, Finance Costs) - treated as a fixed 100%
+    // pass-through.
     const rate = rates[entry.slug] ?? 100;
-    // Most rates are a % (divide by 100); a few (cents/litre, $/tonne, etc.)
-    // are real per-unit rates with their own divisor - see the dataset
-    // entry's own rateDivisor.
+    // Most rates are a % (divide by 100); a few (cents/litre, $/tonne,
+    // $/capita, etc.) are real per-unit rates with their own divisor - see
+    // the dataset entry's own rateDivisor.
     const divisor = entry.rateDivisor ?? 100;
     const adjustBase = baseAdjustments?.[entry.slug];
     let components = [];
+    let entryTake = 0;
     entry.components.forEach(x => {
       const total = adjustBase ? adjustBase(x.value) : x.value;
       let take = total * rate / divisor;
       components.push({ name: x.name, total: total, take: take, slug: entry.slug, unit: x.unit });
-      cumulativeTake += take;
+      entryTake += take;
     });
-    return { name: entry.name, description: entry.description, components: components, slug: entry.slug };
+    cumulativeTake += entryTake;
+    // govtSpending shows a Revenue-tab-style stacked bar broken down by its
+    // own functional categories (Health, Education, ...) rather than one
+    // lump sum - every other multi-component category still collapses to
+    // one totalsKey number, matching how e.g. otherIndirect's many slugs
+    // (fuel excise, tobacco excise, ...) still roll up to one "otherIndirect"
+    // total on the Revenue side.
+    if (perCategoryTotals) data[totalsBucket][entry.name] = entryTake;
+    return { name: entry.name, description: entry.description, components: components, slug: entry.slug, group: entry.group };
   });
 
   data[category] = result;
-  data.totals[category] = cumulativeTake;
+  if (!perCategoryTotals) data[totalsBucket][totalsKey] = cumulativeTake;
   drawMultiComponentTable(category);
-  drawAssumptions(assumptionsId, datasetType);
+  // Every sub-tab pulls from the same underlying dataset/sources, so each
+  // just gets its own copy of the same assumptions text - same as
+  // groupContainerIds above, one draw call per group instead of one shared
+  // box, so the layout matches the Tax/Income tabs' per-tab assumptions box.
+  if (groupAssumptionsIds) {
+    Object.values(groupAssumptionsIds).forEach((id) => drawAssumptions(id, datasetType));
+  } else {
+    drawAssumptions(assumptionsId, datasetType);
+  }
 }
 
-function drawMultiComponentTable(category) {
-  const { containerId } = multiComponentConfig[category];
+// Draws one category's multi-component groups into a single container - the
+// whole body of drawMultiComponentTable below, minus the choice of *which*
+// container. Split out so govtSpending (rendered as three sub-tabs, one
+// container per dataset "group") can call this once per container instead
+// of duplicating the corp/land/etc. single-container rendering logic.
+function renderMultiComponentGroupsInto(containerId, entries, category) {
+  const { modifiers } = multiComponentConfig[category];
   const rates = planCurrent[category];
 
   // Group-level (one per dataset category, e.g. one per corp/otherIndirect
   // slug) update/enter/exit, keyed by slug so groups persist across redraws.
   const containersUpdate = d3.select(containerId)
     .selectAll(".multi-component-group")
-    .data(data[category], d => d.slug);
+    .data(entries, d => d.slug);
 
   containersUpdate.exit().remove();
 
@@ -541,7 +779,6 @@ function drawMultiComponentTable(category) {
   // Per-slug modifier checkboxes (e.g. "Exempt light EVs" under Road User
   // Charges) - rendered once per group here; checked state is synced below
   // in containersMerged on every redraw, same as the rate slider.
-  const { modifiers } = multiComponentConfig[category];
   containersEnter.each(function (d) {
     const mods = modifiers?.[d.slug];
     if (!mods) return;
@@ -630,12 +867,30 @@ function drawMultiComponentTable(category) {
     `)
 }
 
+function drawMultiComponentTable(category) {
+  const { containerId, groupContainerIds } = multiComponentConfig[category];
+
+  if (groupContainerIds) {
+    const byGroup = {};
+    data[category].forEach((entry) => { (byGroup[entry.group] ??= []).push(entry); });
+    Object.entries(groupContainerIds).forEach(([group, cid]) => {
+      renderMultiComponentGroupsInto(cid, byGroup[group] ?? [], category);
+    });
+    return;
+  }
+
+  renderMultiComponentGroupsInto(containerId, data[category], category);
+}
+
 function changeMultiComponentRate(category, tid, value) {
   ensureCustomPlan();
   const { min, max } = sliderRangeFor(category, tid);
   planCurrent[category][tid] = clamp(parseFloat(value), min, max);
   calculateMultiComponentTax(category);
   drawTotal();
+  // govtSpending writes into data.expenditures, not data.totals - drawTotal()
+  // alone wouldn't refresh the drawer's Expenditure bar.
+  if (multiComponentConfig[category].totalsBucket === "expenditures") drawExpenditure();
 }
 
 const calculateCorp = () => calculateMultiComponentTax("corp");
@@ -643,6 +898,7 @@ const calculateLand = () => calculateMultiComponentTax("land");
 const calculateOtherDirect = () => calculateMultiComponentTax("otherDirect");
 const calculateOtherIndirect = () => calculateMultiComponentTax("otherIndirect");
 const calculateNonTaxRevenue = () => calculateMultiComponentTax("nonTaxRevenue");
+const calculateGovtSpending = () => calculateMultiComponentTax("govtSpending");
 
 function changeEvRucExemption(checked) {
   ensureCustomPlan();
@@ -657,7 +913,7 @@ function changeEvRucExemption(checked) {
 // edit needed here to keep a custom plan's clone complete. evRucExempt is a
 // lone boolean outside that pattern, so it's cloned explicitly.
 function createNewIncomePlan() {
-  const clone = { name: "Custom Plan", isCustom: true, evRucExempt: planCurrent.evRucExempt };
+  const clone = { name: "Custom Plan", isCustom: true, evRucExempt: planCurrent.evRucExempt, ubi: planCurrent.ubi };
   Object.values(bracketConfig).forEach(({ bracketsField }) => {
     clone[bracketsField] = structuredClone(planCurrent[bracketsField]);
   });
@@ -711,8 +967,7 @@ function changeBracketPercent(type, bracket, value) {
   // Called when a bracket's percentage is changed.
   ensureCustomPlan();
   const brackets = planCurrent[bracketConfig[type].bracketsField];
-  brackets[bracket].percent = clamp(parseFloat(value), 0, 100);
-  // TODO: allow negative tax range.
+  brackets[bracket].percent = clamp(parseFloat(value), bracketConfig[type].minPercent ?? 0, 100);
   calculateBracketTax(type);
   drawTotal();
 }
@@ -723,6 +978,16 @@ function changeBracketRange(type, bracket, value) {
   const brackets = planCurrent[bracketsField];
   brackets[bracket].top = Math.max(parseFloat(value), (bracket < 1) ? floor : brackets[bracket - 1].top + 1);
   calculateBracketTax(type);
+  drawTotal();
+}
+
+function changeUbi(type, value) {
+  // Called when the UBI line is dragged or its input is edited.
+  ensureCustomPlan();
+  const { ubiField, xDomain } = bracketConfig[type];
+  planCurrent[ubiField] = clamp(parseFloat(value), 0, xDomain[1]);
+  calculateBracketTax(type);
+  calculateExpenditure();
   drawTotal();
 }
 
@@ -790,55 +1055,94 @@ function switchDrawerTab(id) {
   d3.select(id).style("display", null);
 }
 
-function toggleDrawer() {
-  const drawer = d3.select("#drawer");
-  const willCollapse = !drawer.classed("collapsed");
-  drawer.classed("collapsed", willCollapse);
-  d3.select("#drawer-handle").html(willCollapse ? "&#8250;" : "&#8249;");
+// Top-level "Tax/Income" vs "Expenses" nav - same shape as switchDrawerTab,
+// just a different pair of classes since .button__tab/.tab are already used
+// by the Tax/Income sub-tabs nested inside #top-tab-taxincome.
+function switchTopTab(id) {
+  d3.selectAll(".top-tab-button").classed("active", false);
+  d3.selectAll(".top-tab").style("display", "none");
+  d3.select(id + "-button").classed("active", true);
+  d3.select(id).style("display", null);
 }
+
+// Expenses tab's own sub-tabs (Health & Education / Welfare & Benefits /
+// Other Spending) - same shape again, its own classes so switching an
+// Expenses sub-tab can't hide/show a Tax/Income sub-tab that happens to
+// share an id-less selector.
+function switchExpenseTab(id) {
+  d3.selectAll(".expense-tab-button").classed("active", false);
+  d3.selectAll(".expense-tab").style("display", "none");
+  d3.select(id + "-button").classed("active", true);
+  d3.select(id).style("display", null);
+}
+
+// Display names for the Tax/Income sub-tabs, matching index.html's tab
+// headers - used wherever a stacked-bar segment's key is a tax-type slug
+// (data.totals' keys, and the person expenditure bar's category mapping
+// below) rather than a human-readable name already.
+const TAX_CATEGORY_LABELS = {
+  income: "Income Tax", gst: "Goods & Services Tax", corp: "Corporate Tax",
+  wealth: "Wealth Tax", land: "Land Tax", otherDirect: "Direct Taxes (Other)",
+  otherIndirect: "Indirect Tax (Other)", nonTaxRevenue: "Non-Tax Revenue",
+};
+
+// Display names for govtSpending's three sub-tab groups (see
+// multiComponentConfig.govtSpending's groupContainerIds), matching
+// index.html's Expenses sub-tab headers.
+const SPENDING_CATEGORY_LABELS = {
+  core: "Health & Education", welfare: "Welfare & Benefits", other: "Other Spending",
+};
 
 // This stacks every category in data.totals, tax and non-tax alike (ACC
 // levies, nonTaxRevenue) - by design, all Crown revenue counts here even
 // though not all of it is technically "tax". See TODO.md.
 function drawTotal() {
+  drawStackedBar(totalBar, data.totals, {
+    domainMax: 200000000,
+    formatValue: (v) => `${(v / 1000000).toFixed(2)}B`,
+    // data.totals' keys are already one-per-category (see the `data`
+    // initializer) except "other", the otherIndirect residual - grouped into
+    // otherIndirect itself so it shades alongside the tax it's a residual of
+    // rather than getting its own unrelated hue.
+    categoryOf: (key) => key === "other" ? "otherIndirect" : key,
+    categoryLabel: (key) => TAX_CATEGORY_LABELS[key] ?? key,
+  });
+  // Person tab reads planCurrent's rates, same as every other tab - so it
+  // needs to redraw whenever anything tax-relevant changes. Hooking in here
+  // (rather than every individual changeX handler) works because drawTotal()
+  // already runs after every single mutation in the app - including every
+  // tick of a drag gesture, dozens of times/second, so skip the work (two
+  // SVG redraws + a table rebuild) while the drawer's People tab isn't even
+  // visible. switchDrawerTab() forces one redraw when the tab is opened, to
+  // catch up on whatever changed while it was hidden.
+  if (personCurrent && d3.select("#drawer-tab-people").style("display") !== "none") drawPerson();
+}
 
-  let cumulative = 0;
+// UBI cost = amount per recipient ($K, same units as bracket `top`s) x
+// adult population - not yet netted against `data.totals`.
+function calculateExpenditure() {
+  const recipients = metaFor("general").adultPopulation ?? 0;
+  data.expenditures.UBI = (planCurrent.ubi ?? 0) * recipients;
+  drawExpenditure();
+}
 
-  const stackedData = Object.entries(data.totals).map((k) => ({
-    name: k[0],
-    value: k[1],
-    start: cumulative,
-    end: (cumulative += k[1]),
-  }));
-
-  totalXScale.domain(["Total"]);
-  totalYScale.domain([0, 200000000]);
-  colorScale.domain(Object.keys(data.totals));
-
-  const bars = totalPlot.selectAll("rect")
-    .data(stackedData, d => d.name);
-
-  const labels = totalPlot.selectAll("text.label")
-    .data(stackedData, d => d.name);
-
-  bars.join("rect")
-    .attr("x", totalXScale("Total"))
-    .attr("y", d => totalYScale(d.end))
-    .attr("height", d => totalYScale(d.start) - totalYScale(d.end))
-    .attr("width", totalXScale.bandwidth())
-    .attr("fill", d => colorScale(d.name));
-
-
-  labels.join("text")
-    .attr("class", "label")
-    .attr("x", totalXScale("Total"))
-    .attr("y", d => totalYScale(d.end))
-    .attr("dx", totalXScale.bandwidth() / 2)
-    .attr("dy", "1em")
-    .attr("text-anchor", "middle")
-    .text(d => (d.value < 7000000) ? "" : d.name + "\n" + (d.value / 1000000).toFixed(2) + "B")
-
-  totalPlot.selectAll(".y-axis").remove();
+// Mirrors drawTotal() above, but for `data.expenditures`. Unlike
+// data.totals, these keys are govtSpending's individual functional
+// categories (Health, Education, ...), not one-per-sub-tab - data.govtSpending
+// (the detail array calculateMultiComponentTax also writes) still carries
+// each one's `group` (core/welfare/other, i.e. which Expenses sub-tab it's
+// rendered under), so that's read back out here rather than duplicating the
+// grouping. UBI isn't a govtSpending dataset entry at all (see
+// calculateExpenditure) - its own control lives on the Income Tax tab, so it
+// categorizes there instead of falling into one of the three spending groups.
+function drawExpenditure() {
+  const groupOf = Object.fromEntries(data.govtSpending.map(e => [e.name, e.group]));
+  drawStackedBar(expenditureBar, data.expenditures, {
+    domainMax: 200000000,
+    formatValue: (v) => `${(v / 1000000).toFixed(2)}B`,
+    categoryOf: (name) => groupOf[name] ?? "income",
+    categoryLabel: (key) => SPENDING_CATEGORY_LABELS[key] ?? TAX_CATEGORY_LABELS[key] ?? key,
+  });
 }
 
 // Joins `brackets` against `className` rects within `layer`. `setupEnter`
@@ -871,19 +1175,25 @@ function drawBracketChart(type) {
       ? Math.max(0, width - xScale(from)) + 50
       : xScale(d.top) - xScale(from);
   };
-  // Pixel y of the taller of bracket i and its neighbour, computed once per
+  // Pixel y of whichever of bracket i and its neighbour sits further from
+  // the zero line (by magnitude, not just "taller"), computed once per
   // bracket rather than per attribute, for sizing a shared-boundary handle
-  // that stays draggable even when one side is 0%.
+  // that stays draggable even when one side is 0% - or, now that rates can
+  // go negative, when one side is negative and the other positive.
   const yScaleRateZero = yScaleRate(0);
-  const boundaryY = brackets.map((b, i) => yScaleRate(Math.max(b.percent, brackets[i + 1]?.percent ?? b.percent)));
+  const boundaryY = brackets.map((b, i) => {
+    const neighbour = brackets[i + 1]?.percent ?? b.percent;
+    const further = Math.abs(b.percent) >= Math.abs(neighbour) ? b.percent : neighbour;
+    return yScaleRate(further);
+  });
 
   joinLayerRects(rectLayer, "bracket-rect", brackets,
     (entered) => entered.attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1),
     {
       x: (d, i) => xScale(rectFrom(i)),
-      y: d => yScaleRate(d.percent),
+      y: d => Math.min(yScaleRate(d.percent), yScaleRateZero),
       width: rectWidth,
-      height: d => yScaleRateZero - yScaleRate(d.percent),
+      height: d => Math.abs(yScaleRateZero - yScaleRate(d.percent)),
     });
 
   joinLayerRects(topHandleLayer, "handle-top", brackets,
@@ -901,11 +1211,267 @@ function drawBracketChart(type) {
     {
       x: d => xScale(d.top) - (handleWidth / 2),
       width: (d, i) => ((i < brackets.length - 1) ? handleWidth : 0),
-      y: (d, i) => boundaryY[i],
-      height: (d, i) => yScaleRateZero - boundaryY[i],
+      y: (d, i) => Math.min(boundaryY[i], yScaleRateZero),
+      height: (d, i) => Math.abs(yScaleRateZero - boundaryY[i]),
     },
     dragRight);
+
+  drawUbiLine(type);
 }
+
+// Draws the draggable "minimum income" line for types with a ubiField
+// configured (income only) - a no-op for types without one, e.g. wealth.
+function drawUbiLine(type) {
+  const { ubiField } = bracketConfig[type];
+  const { xScale, ubiLineLayer, dragUbi } = bracketPlots[type];
+  const lineData = ubiField ? [planCurrent[ubiField] ?? 0] : [];
+
+  const line = ubiLineLayer.selectAll(".ubi-line").data(lineData);
+  line.exit().remove();
+  line.enter()
+    .append("line")
+    .attr("class", "ubi-line")
+    .attr("stroke", "green").attr("stroke-width", handleWidth).attr("stroke-opacity", 0.4)
+    .style("cursor", "col-resize")
+    .call(dragUbi)
+    .merge(line)
+    .attr("x1", d => xScale(d)).attr("x2", d => xScale(d))
+    .attr("y1", 0).attr("y2", height);
+
+  const label = ubiLineLayer.selectAll(".ubi-label").data(lineData);
+  label.exit().remove();
+  label.enter()
+    .append("text")
+    .attr("class", "ubi-label")
+    .attr("text-anchor", "middle")
+    .attr("y", -6)
+    .merge(label)
+    .attr("x", d => xScale(d))
+    .text(d => `UBI: $${d.toFixed(1)}K`);
+
+  if (ubiField) {
+    d3.select("#ubi-input").property("value", (planCurrent[ubiField] ?? 0).toFixed(1));
+  }
+}
+
+// People tab: shows how much a single selected person would pay under
+// whatever tax plan/settings are currently active. Reuses planCurrent's
+// rates directly (via marginalBracketTax/personSlugTake below) rather than
+// hand-coding a parallel set of rates, so it stays live as the user edits
+// brackets/sliders elsewhere - see drawTotal()'s call to drawPerson().
+const personFieldConfig = [
+  { field: "income", label: "Annual income", unit: "$" },
+  { field: "spending", label: "Annual taxable spending", unit: "$" },
+  { field: "netWorth", label: "Net worth", unit: "$" },
+  { field: "landValueUrban", label: "Urban land value owned", unit: "$" },
+  { field: "landValueRural", label: "Rural land value owned", unit: "$" },
+  { field: "vehicles", label: "Vehicles owned", unit: "" },
+  { field: "fuelLitres", label: "Petrol used per year", unit: "L" },
+  { field: "rucKm", label: "RUC-liable distance per year (diesel/EV)", unit: "km" },
+  { field: "cigarettes", label: "Cigarettes smoked per year", unit: "sticks" },
+  { field: "alcoholLitres", label: "Pure alcohol consumed per year", unit: "L" },
+  { field: "gamingSpend", label: "Gambling machine spend per year", unit: "$" },
+  { field: "capitalGains", label: "Capital gains realised per year", unit: "$" },
+  { field: "trustIncome", label: "Trustee income per year", unit: "$" },
+  { field: "fbtValue", label: "Fringe benefits received per year", unit: "$" },
+  { field: "businessTurnover", label: "Business turnover per year", unit: "$" },
+  { field: "businessProfit", label: "Business profit per year", unit: "$" },
+];
+
+// Person amounts are real dollars (one person), unlike formatBillions()
+// which assumes $K-scale aggregate totals - needs its own K/M scaling.
+function formatDollars(value) {
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+  if (abs >= 1000000) return `${sign}$${(abs / 1000000).toFixed(2)}M`;
+  if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}K`;
+  return `${sign}$${abs.toFixed(0)}`;
+}
+
+// A real marginal-rate calculation, unlike calculateBracketTax()'s
+// binned-average approach (only meaningful against aggregate population
+// data) - a single person's tax is exact: sum each bracket's rate against
+// however much of their value falls inside it. valueK/brackets/floorK are
+// all in $K, matching tax_plans.json's bracket "top" convention.
+function marginalBracketTax(valueK, brackets, floorK) {
+  let tax = 0;
+  let from = floorK;
+  for (const b of brackets) {
+    if (valueK <= from) break;
+    tax += (Math.min(valueK, b.top) - from) * (b.percent / 100);
+    from = b.top;
+  }
+  return tax;
+}
+
+// A person's version of calculateMultiComponentTax()'s take = value * rate
+// / divisor formula. Reads rateDivisor/unit straight off the real dataset
+// entry (the same values the aggregate calc uses) rather than duplicating
+// them, converts personRealValue (real litres/km/cigarettes/dollars/etc.)
+// down to the dataset's own internal unit via the existing UNIT_SCALE table,
+// runs the identical formula, then scales the $K-scale result back up to
+// real dollars.
+function personSlugTake(category, slug, personRealValue) {
+  if (!personRealValue) return 0;
+  const cfg = multiComponentConfig[category];
+  const rate = planCurrent[category]?.[slug];
+  const entry = datasetFor(cfg.datasetType).find(e => e.slug === slug);
+  if (rate === undefined || !entry) return 0;
+  const divisor = entry.rateDivisor ?? 100;
+  const multiplier = UNIT_SCALE[entry.components[0]?.unit]?.multiplier ?? 1000;
+  return (personRealValue / multiplier) * rate / divisor * 1000;
+}
+
+// Only slugs that plausibly apply to an individual get a person field here -
+// industrial/producer-side slugs (ETS, waste levy, nitrate charge, work
+// levy) are intentionally left unmapped (contribute $0), the same kind of
+// documented simplification as the rest of this project's ASSUMPTIONS.md.
+function calculatePersonTax(person) {
+  const ubiK = planCurrent.ubi ?? 0;
+  const incomeTax = marginalBracketTax((person.income ?? 0) / 1000 + ubiK, planCurrent.brackets, 0) * 1000;
+  const wealthTax = marginalBracketTax((person.netWorth ?? 0) / 1000, planCurrent.wealthBrackets, bracketConfig.wealth.floor) * 1000;
+  const gst = (person.spending ?? 0) * planCurrent.gst / 100;
+  const landTax = personSlugTake("land", "urban", person.landValueUrban) + personSlugTake("land", "rural", person.landValueRural);
+  const cgt = personSlugTake("otherDirect", "cgt", person.capitalGains);
+  const trust = personSlugTake("otherDirect", "trust", person.trustIncome);
+  const fbt = personSlugTake("otherDirect", "fbt", person.fbtValue);
+  const fuelExcise = personSlugTake("otherIndirect", "fuelExcise", person.fuelLitres);
+  const tobaccoExcise = personSlugTake("otherIndirect", "tobaccoExcise", person.cigarettes);
+  const alcoholExcise = personSlugTake("otherIndirect", "alcoholExcise", person.alcoholLitres);
+  const roadUserCharges = personSlugTake("otherIndirect", "roadUserCharges", person.rucKm);
+  const gamingDuty = personSlugTake("otherIndirect", "gamingDuty", person.gamingSpend);
+  const earnerLevy = personSlugTake("nonTaxRevenue", "earnerLevy", person.income);
+  const mvLevy = personSlugTake("nonTaxRevenue", "mvLevy", person.vehicles);
+  const corpLargeThreshold = metaFor("corp").corpLargeThreshold ?? 30000000;
+  const corpSlug = (person.businessTurnover ?? 0) > corpLargeThreshold ? "corpLarge" : "corp";
+  const corp = personSlugTake("corp", corpSlug, person.businessProfit);
+
+  // Income bar: gross income and benefits received, plain stacked totals -
+  // no netting against tax here (that's what the "everything else" bar is
+  // for). Mirrors the government Total tab's Revenue bar, which is likewise
+  // just a stack of raw totals rather than a gross-to-net waterfall.
+  const incomeBar = {
+    "Income": person.income ?? 0,
+    "Benefits (UBI)": ubiK * 1000,
+    "Capital Gains": person.capitalGains ?? 0,
+    "Trust Income": person.trustIncome ?? 0,
+    "Fringe Benefits": person.fbtValue ?? 0,
+    "Business Profit": person.businessProfit ?? 0,
+  };
+
+  // Everything else bar: every tax (on income, gains, wealth, and spending
+  // alike) plus net spending itself - mirrors the government Total tab's
+  // Expenditure bar being a plain stack of its own totals.
+  const expenditureBar = {
+    "Net Spending": person.spending ?? 0,
+    "Income Tax": incomeTax, "Wealth Tax": wealthTax, "Capital Gains Tax": cgt,
+    "Trust Tax": trust, "FBT": fbt, "Business/Corp Tax": corp, "ACC Earner's Levy": earnerLevy,
+    "GST": gst, "Fuel Excise": fuelExcise, "Tobacco Excise": tobaccoExcise,
+    "Alcohol Excise": alcoholExcise, "Gaming Duty": gamingDuty, "Land Tax": landTax,
+    "Road User Charges": roadUserCharges, "ACC Vehicle Levy": mvLevy,
+  };
+
+  return {
+    incomeBar,
+    expenditureBar,
+  };
+}
+
+function drawPersonBreakdownTable(taxes) {
+  const rows = d3.select("#person-breakdown-table").select("tbody").selectAll("tr").data(Object.entries(taxes));
+  rows.exit().remove();
+  rows.enter().append("tr").merge(rows).html(([name, value]) => `
+    <td>${name}</td>
+    <td>${formatDollars(value)}</td>
+  `);
+}
+
+function drawPersonFieldsTable() {
+  const rows = d3.select("#person-fields-table").select("tbody").selectAll("tr").data(personFieldConfig);
+  rows.exit().remove();
+  rows.enter().append("tr").merge(rows).html((d) => {
+    const prefix = d.unit === "$" ? "$" : "";
+    const suffix = d.unit === "$" ? "" : d.unit;
+    return `
+    <td>${d.label}</td>
+    <td>${prefix} <input type="text" inputmode="decimal" value="${personCurrent[d.field] ?? 0}" onchange="changePersonField('${d.field}', this.value)"> ${suffix}</td>
+  `;
+  });
+}
+
+// Redraws the tax-breakdown side of the People tab (portrait/name/bars/
+// table) - everything that depends on planCurrent's rates rather than on
+// personCurrent's own field values. Deliberately does NOT redraw
+// drawPersonFieldsTable() - that only needs to run when personCurrent's
+// identity or fields actually change (see its call sites), not on every one
+// of the many tax-rate mutations that call this via drawTotal().
+// Maps each of calculatePersonTax()'s expenditureBar line items to the
+// Tax/Income sub-tab whose settings compute it (mirrors that function's own
+// personSlugTake("category", ...) calls). "Net Spending" isn't a tax at all,
+// so it's left out - falls back to categorizing under its own name, same as
+// personIncomeBar's items below (which don't correspond to any tax sub-tab).
+const PERSON_TAX_CATEGORY = {
+  "Income Tax": "income", "Wealth Tax": "wealth", "Capital Gains Tax": "otherDirect",
+  "Trust Tax": "otherDirect", "FBT": "otherDirect", "Business/Corp Tax": "corp",
+  "ACC Earner's Levy": "nonTaxRevenue", "GST": "gst", "Fuel Excise": "otherIndirect",
+  "Tobacco Excise": "otherIndirect", "Alcohol Excise": "otherIndirect",
+  "Gaming Duty": "otherIndirect", "Land Tax": "land", "Road User Charges": "otherIndirect",
+  "ACC Vehicle Levy": "nonTaxRevenue",
+};
+
+function drawPerson() {
+  const result = calculatePersonTax(personCurrent);
+
+  d3.select("#person-portrait").text(personCurrent.portrait ?? "🧑");
+  d3.select("#person-name").text(personCurrent.name);
+  d3.select("#person-description").text(personCurrent.description ?? "");
+
+  drawStackedBar(personIncomeBar, result.incomeBar, {
+    formatValue: formatDollars,
+  });
+  drawStackedBar(personExpenditureBar, result.expenditureBar, {
+    formatValue: formatDollars,
+    categoryOf: (name) => PERSON_TAX_CATEGORY[name] ?? name,
+    categoryLabel: (key) => TAX_CATEGORY_LABELS[key] ?? key,
+  });
+
+  drawPersonBreakdownTable({ ...result.incomeBar, ...result.expenditureBar });
+}
+
+// Predefined people are read-only, same copy-on-write pattern as tax plans
+// (ensureCustomPlan/createNewIncomePlan) - the first edit to one clones it
+// into a new "Custom Person" entry and repoints personCurrent at the clone.
+// A shallow clone is enough here - person objects are flat, no nested arrays.
+function createNewCustomPerson() {
+  const clone = { ...personCurrent, name: "Custom Person", isCustom: true };
+  people.push(clone);
+  personCurrent = people[people.length - 1];
+  drawPersonDropdown();
+}
+
+function ensureCustomPerson() {
+  if (!personCurrent.isCustom) createNewCustomPerson();
+}
+
+function changePersonField(field, value) {
+  ensureCustomPerson();
+  personCurrent[field] = parseFloat(value) || 0;
+  drawPerson();
+  drawPersonFieldsTable();
+}
+
+function addCustomPerson() {
+  createNewCustomPerson();
+  drawPerson();
+  drawPersonFieldsTable();
+}
+
+// Draw person dropdown - same shape as the Tax Plan selector above.
+const drawPersonDropdown = createIndexedDropdown("#person-dropdown-container", "person-dropdown", people, () => personCurrent, (person) => {
+  personCurrent = person;
+  drawPerson();
+  drawPersonFieldsTable();
+});
 
 function recalculateAll() {
   calculateBracketTax("income");
@@ -917,18 +1483,22 @@ function recalculateAll() {
   calculateOtherIndirect();
   calculateNonTaxRevenue();
   data.totals.other = metaFor("otherIndirect").otherIndirectResidual ?? 0;
+  calculateGovtSpending();
+  calculateExpenditure();
   drawTotal();
 }
 
 drawDropdown();
 drawYearDropdown();
-drawBracketHistogram("income");
-drawBracketHistogram("wealth");
+drawPersonDropdown();
 recalculateAll();
+drawPerson();
+drawPersonFieldsTable();
 
 // allow access from page
 window.changeBracketRange = changeBracketRange;
 window.changeBracketPercent = changeBracketPercent;
+window.changeUbi = changeUbi;
 window.removeBracket = removeBracket;
 window.insertBracket = insertBracket;
 window.changeGSTRate = changeGSTRate;
@@ -936,4 +1506,8 @@ window.changeFlatRate = changeFlatRate;
 window.changeMultiComponentRate = changeMultiComponentRate;
 window.switchTab = switchTab;
 window.switchDrawerTab = switchDrawerTab;
-window.toggleDrawer = toggleDrawer;
+window.switchTopTab = switchTopTab;
+window.switchExpenseTab = switchExpenseTab;
+window.changePersonField = changePersonField;
+window.addCustomPerson = addCustomPerson;
+window.drawPerson = drawPerson;

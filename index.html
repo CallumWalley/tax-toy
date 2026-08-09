@@ -14,6 +14,16 @@
   </div>
   <div class="main">
     <div class="center">
+      <div class="top-tab-container-buttons">
+        <button id="top-tab-taxincome-button" class="top-tab-button active" onclick="switchTopTab('#top-tab-taxincome')">
+          <h3>Tax / Income</h3>
+        </button>
+        <button id="top-tab-expenses-button" class="top-tab-button" onclick="switchTopTab('#top-tab-expenses')">
+          <h3>Expenses</h3>
+        </button>
+      </div>
+      <div class="top-tab-panels">
+      <div id="top-tab-taxincome" class="top-tab">
       <div class="tab-container-buttons">
         <button id="tab-income-button" class="button__tab active" onclick="switchTab('#tab-income')">
           <h3>Income Tax</h3>
@@ -42,9 +52,14 @@
       </div>
       <div class="tab-container">
         <div id="tab-income" class="tab">
-          <em>Individual income tax, or provisional tax, is a tax on income earned by an individual.</em>
+          <em>Individual income tax, is a tax on income earned by an individual.</em>
           <hr>
           <div id="income-assumptions" class="assumptions"></div>
+          <div class="ubi-control">
+            <label>UBI (minimum income payed to all people) TODO scope by citizen resident etc:
+              $ <input id="ubi-input" type="text" inputmode="decimal" onchange="changeUbi('income', this.value)"> K/year
+            </label>
+          </div>
           <div id="plot-container">
           </div>
           <div class="mdc-data-table">
@@ -158,24 +173,107 @@
           </div>
         </div>
       </div>
+      </div>
+      <div id="top-tab-expenses" class="top-tab" style="display: none;">
+        <div class="tab-container-buttons">
+          <button id="expense-tab-core-button" class="expense-tab-button active" onclick="switchExpenseTab('#expense-tab-core')">
+            <h3>Health &amp; Education</h3>
+          </button>
+          <button id="expense-tab-welfare-button" class="expense-tab-button" onclick="switchExpenseTab('#expense-tab-welfare')">
+            <h3>Welfare &amp; Benefits</h3>
+          </button>
+          <button id="expense-tab-other-button" class="expense-tab-button" onclick="switchExpenseTab('#expense-tab-other')">
+            <h3>Other Spending</h3>
+          </button>
+        </div>
+        <div class="tab-container">
+          <div id="expense-tab-core" class="expense-tab">
+            <em>Health and education are Core Crown's two largest single functional-spending categories.</em>
+            <hr>
+            <div id="govtspending-core-assumptions" class="assumptions"></div>
+            <div id="govtspending-core-table-container">
+            </div>
+          </div>
+          <div id="expense-tab-welfare" style="display: none;" class="expense-tab">
+            <em>NZ Superannuation, main benefits, and other welfare support, funded from general taxation.</em>
+            <hr>
+            <div id="govtspending-welfare-assumptions" class="assumptions"></div>
+            <div id="govtspending-welfare-table-container">
+            </div>
+          </div>
+          <div id="expense-tab-other" style="display: none;" class="expense-tab">
+            <em>Law and order, defence, transport, housing, and other Core Crown functional categories, plus Finance Costs (interest on Crown debt).</em>
+            <hr>
+            <div id="govtspending-other-assumptions" class="assumptions"></div>
+            <div id="govtspending-other-table-container">
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
     </div>
     <div class="right drawer" id="drawer">
-      <button id="drawer-handle" class="drawer-handle" onclick="toggleDrawer()" aria-label="Toggle drawer">&#8249;</button>
       <div class="drawer-content">
         <div class="drawer-tab-container-buttons">
           <button id="drawer-tab-total-button" class="drawer-tab-button active" onclick="switchDrawerTab('#drawer-tab-total')">
             <h3>Total</h3>
           </button>
-          <button id="drawer-tab-people-button" class="drawer-tab-button" onclick="switchDrawerTab('#drawer-tab-people')">
+          <button id="drawer-tab-people-button" class="drawer-tab-button" onclick="switchDrawerTab('#drawer-tab-people'); drawPerson()">
             <h3>People</h3>
           </button>
         </div>
         <div class="drawer-tab-panels">
           <div id="drawer-tab-total" class="drawer-tab">
-            <div id="total-container"></div>
+            <div class="stacked-bar-columns">
+              <div>
+                <h4>Revenue</h4>
+                <div id="total-container"></div>
+              </div>
+              <div>
+                <h4>Expenditure</h4>
+                <div id="expenditure-container"></div>
+              </div>
+            </div>
           </div>
           <div id="drawer-tab-people" class="drawer-tab" style="display: none;">
-            <em>Coming soon.</em>
+            <em>Illustrative example people - see how the current tax plan affects them. Figures are rough archetypes, not sourced statistics.</em>
+            <hr>
+            <div id="person-dropdown-container" class="person-dropdown-container">
+            </div>
+            <button id="person-add" onclick="addCustomPerson()">Add Custom Person</button>
+            <div class="person-card">
+              <div id="person-portrait" class="person-portrait"></div>
+              <div>
+                <h4 id="person-name"></h4>
+                <p id="person-description" class="assumptions"></p>
+              </div>
+            </div>
+            <div class="stacked-bar-columns">
+              <div>
+                <h4>Income</h4>
+                <div id="person-income-container"></div>
+              </div>
+              <div>
+                <h4>Expenditure</h4>
+                <div id="person-expenditure-container"></div>
+              </div>
+            </div>
+            <h4>Breakdown</h4>
+            <table id="person-breakdown-table" aria-label="Person tax breakdown">
+              <thead>
+                <tr class="mdc-data-table__header-row">
+                  <th role="columnheader" scope="col">Tax</th>
+                  <th role="columnheader" scope="col">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+            <h4>Edit person</h4>
+            <table id="person-fields-table" aria-label="Person details">
+              <tbody>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
