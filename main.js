@@ -5,50 +5,23 @@ async function loadDataset(path) {
   const raw = await d3.json(path);
   return { data: raw.data, sources: raw.sources, meta: raw.meta };
 }
-const datasets = {
-  income: {
-    2024: await loadDataset("./data/2024/income.json"),
-    2025: await loadDataset("./data/2025/income.json"),
-  },
-  gst: {
-    2024: await loadDataset("./data/2024/gst.json"),
-    2025: await loadDataset("./data/2025/gst.json"),
-  },
-  corp: {
-    2024: await loadDataset("./data/2024/corp.json"),
-    2025: await loadDataset("./data/2025/corp.json"),
-  },
-  wealth: {
-    2024: await loadDataset("./data/2024/wealth.json"),
-    2025: await loadDataset("./data/2025/wealth.json"),
-  },
-  land: {
-    2024: await loadDataset("./data/2024/land.json"),
-    2025: await loadDataset("./data/2025/land.json"),
-  },
-  otherDirect: {
-    2024: await loadDataset("./data/2024/otherdirect.json"),
-    2025: await loadDataset("./data/2025/otherdirect.json"),
-  },
-  otherIndirect: {
-    2024: await loadDataset("./data/2024/otherindirect.json"),
-    2025: await loadDataset("./data/2025/otherindirect.json"),
-  },
-  nonTaxRevenue: {
-    2024: await loadDataset("./data/2024/nontaxrevenue.json"),
-    2025: await loadDataset("./data/2025/nontaxrevenue.json"),
-  },
-  general: {
-    2024: await loadDataset("./data/2024/general.json"),
-    2025: await loadDataset("./data/2025/general.json"),
-  },
-  expenditure: {
-    2024: await loadDataset("./data/2024/expenditure.json"),
-    2025: await loadDataset("./data/2025/expenditure.json"),
-  },
-};
-
+// Every type's file lives at the conventional data/<year>/<type-lowercased>.json
+// path (see CLAUDE.md) - loading them via a loop instead of a hand-written
+// per-type/year literal means a future data year only needs an
+// availableYears entry, not a matching block added to every type here.
+const DATASET_TYPES = [
+  "income", "gst", "corp", "wealth", "land",
+  "otherDirect", "otherIndirect", "nonTaxRevenue", "general", "expenditure",
+];
 const availableYears = [2024, 2025];
+const datasets = {};
+for (const type of DATASET_TYPES) {
+  datasets[type] = {};
+  for (const year of availableYears) {
+    datasets[type][year] = await loadDataset(`./data/${year}/${type.toLowerCase()}.json`);
+  }
+}
+
 let currentYear = 2025;
 
 function yearEntryFor(type) {
@@ -80,7 +53,31 @@ function drawAssumptions(containerId, type) {
     .text(d => d.assumptions);
 }
 
-const plans = (await d3.json("./data/tax_plans.json")).plans;
+// Mirrors drawAssumptions above, but for a budget plan's own `sources`
+// (see budget_plans.json) rather than a dataset's methodology - one box per
+// Expenses sub-tab (health/education/welfare/other), so a party's
+// costed/estimated spending citations only show up next to the categories
+// they actually describe. A source's own `groups` array (e.g. Labour's
+// Medicard source is `["health"]`, NZ First's scene-setting note spans
+// `["health","welfare","other"]`) picks which box(es) it renders into; a
+// source with no `groups` field is a plan-wide disclaimer (e.g. "spending
+// not researched for this plan") and renders into all of them.
+function drawPlanAssumptions(groupContainerIds) {
+  const sources = planCurrent.sources ?? [];
+  Object.entries(groupContainerIds).forEach(([group, containerId]) => {
+    const relevant = sources.filter(s => !s.groups || s.groups.includes(group));
+    const paragraphs = d3.select(containerId)
+      .selectAll("p")
+      .data(relevant);
+    paragraphs.exit().remove();
+    paragraphs.enter()
+      .append("p")
+      .merge(paragraphs)
+      .text(d => d.assumptions);
+  });
+}
+
+const plans = (await d3.json("./data/budget_plans.json")).plans;
 // Preprocces
 plans.forEach(a => {
   a.isCustom = false;
@@ -227,9 +224,11 @@ function createBracketPlot(type, containerId, xDomain, rateDomain = [0, 100], un
 }
 
 // floor: implied bottom of bracket 0 (0 for income; wealth data includes
-// negative net worth, so its ladder starts below zero). Tax rate is always
-// shown/editable as 0-100% (createBracketPlot's rateDomain/changeBracketPercent's
-// minPercent default) - no bracket type currently allows negative rates.
+// negative net worth, so its ladder starts below zero). The chart itself
+// still only plots 0-100% (createBracketPlot's rateDomain default, unchanged
+// here) - but changeBracketPercent's minPercent default allows typing (or
+// dragging) a rate down to -100%; a bracket set below 0% renders clipped out
+// of the visible chart rather than extending its scale.
 // ubiField marks which types have a UBI line/plan field (income only).
 const bracketConfig = {
   income: {
@@ -315,9 +314,12 @@ function createStackedBarPlot(containerId, label) {
     .range([900, 0]);
 
   const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-  plot.append("g").attr("class", "y-axis").attr("transform", `translate(170,0)`).call(d3.axisRight(yScale));
+  // Sits in the ~35px margin right of the bar (band right edge is ~164px
+  // within the 200px-wide SVG) - holds one rotated category label per
+  // contiguous run of same-category segments, drawn by drawStackedBar.
+  const categoryLabelLayer = plot.append("g").attr("class", "category-labels");
 
-  return { plot, xScale, yScale, colorScale, label };
+  return { plot, xScale, yScale, colorScale, label, categoryLabelLayer };
 }
 
 // Single tooltip element shared by every stacked-bar plot (Total,
@@ -329,11 +331,11 @@ const chartTooltip = d3.select("body")
 
 // Redraws a stacked-bar chart created by createStackedBarPlot from a flat
 // {itemName: value} object - each key becomes one stacked segment, in
-// object-key order. `domainMax` fixes the y-axis scale (government bars use
-// a stable value so they don't jitter); omit it to size the axis to this
-// draw's own total instead (needed for person bars, which vary hugely
-// between archetypes). `formatValue` formats a segment's value for its
-// tooltip. `categoryOf` maps an item name to the sub-tab/category it belongs
+// object-key order. The y-axis always sizes to this draw's own total
+// (`domainMax` can override that with a fixed value instead, if some future
+// caller needs a stable scale rather than always filling the full height).
+// `formatValue` formats a segment's value for its tooltip. `categoryOf` maps
+// an item name to the sub-tab/category it belongs
 // to (defaults to the item itself, i.e. no finer grouping than one segment
 // per category) - segments sharing a category are colour-shades of the same
 // hue rather than unrelated colours, and `categoryLabel` supplies that
@@ -341,7 +343,7 @@ const chartTooltip = d3.select("body")
 // this job but collided/vanished below a size threshold on the denser bars
 // (govtSpending, person expenditure) - a hover tooltip has no such limit.
 function drawStackedBar(refs, dataObj, { domainMax, formatValue, categoryOf = (name) => name, categoryLabel = (key) => key } = {}) {
-  const { plot, xScale, yScale, colorScale, label } = refs;
+  const { plot, xScale, yScale, colorScale, label, categoryLabelLayer } = refs;
 
   let cumulative = 0;
   const stackedData = Object.entries(dataObj).map(([name, value]) => ({
@@ -388,11 +390,42 @@ function drawStackedBar(refs, dataObj, { domainMax, formatValue, categoryOf = (n
     })
     .on("mouseleave", () => chartTooltip.classed("visible", false));
 
-  plot.selectAll(".y-axis").remove();
+  // Category labels, drawn once per contiguous run of same-category
+  // segments rather than once per category overall - a category can recur
+  // non-contiguously (e.g. the Total bar's "other" otherIndirect residual
+  // sits apart from the main "otherIndirect" segment), and one label per run
+  // avoids a single label implying a span that covers unrelated segments in
+  // between.
+  const runs = [];
+  stackedData.forEach(d => {
+    const prevRun = runs[runs.length - 1];
+    if (prevRun && prevRun.category === d.category) prevRun.end = d.end;
+    else runs.push({ category: d.category, start: d.start, end: d.end });
+  });
+
+  const MIN_LABEL_HEIGHT = 24; // px - shorter runs skip the label; still fully described by the tooltip.
+  const FONT_SIZE = 9;
+  const labelableRuns = runs
+    .map(r => ({ ...r, pixelHeight: yScale(r.start) - yScale(r.end) }))
+    .filter(r => r.pixelHeight >= MIN_LABEL_HEIGHT);
+
+  const truncateForHeight = (text, heightPx) => {
+    const maxChars = Math.floor(heightPx / (FONT_SIZE * 0.6));
+    if (text.length <= maxChars) return text;
+    return maxChars > 1 ? text.slice(0, maxChars - 1) + "…" : "";
+  };
+
+  categoryLabelLayer.selectAll("text").data(labelableRuns, (r, i) => `${r.category}-${i}`)
+    .join("text")
+    .attr("text-anchor", "middle")
+    .attr("fill", "black")
+    .style("font-size", `${FONT_SIZE}px`)
+    .attr("transform", r => `translate(180, ${(yScale(r.start) + yScale(r.end)) / 2}) rotate(-90)`)
+    .text(r => truncateForHeight(categoryLabel(r.category), r.pixelHeight));
 }
 
-const totalBar = createStackedBarPlot("#total-container", "Total");
-const expenditureBar = createStackedBarPlot("#expenditure-container", "Expenditure");
+const totalBar = createStackedBarPlot("#government-income-container", "Income");
+const expenditureBar = createStackedBarPlot("#government-expenditure-container", "Expenditure");
 const personIncomeBar = createStackedBarPlot("#person-income-container", "Income");
 const personExpenditureBar = createStackedBarPlot("#person-expenditure-container", "Expenditure");
 
@@ -517,7 +550,7 @@ function applySliderRange(sliderSel, ticksSel, outputSel, range, value) {
 const flatRateConfig = {
   gst: {
     datasetType: "gst", containerId: "#gst-table-container", sliderId: "#sliderGst", rateField: "gst", assumptionsId: "#gst-assumptions",
-    sliderLabel: "GST rate", min: 0, max: 25, step: 0.1, tickStep: 5,
+    sliderLabel: "GST rate", min: 0, max: 50, step: 0.1, tickStep: 5,
   },
 };
 
@@ -637,14 +670,25 @@ const multiComponentConfig = {
     // which container/assumptions box it's drawn into, mirroring the
     // Tax/Income tabs' one-intro-plus-assumptions-per-tab layout.
     groupContainerIds: {
-      core: "#govtspending-core-table-container",
+      health: "#govtspending-health-table-container",
+      education: "#govtspending-education-table-container",
       welfare: "#govtspending-welfare-table-container",
       other: "#govtspending-other-table-container",
     },
     groupAssumptionsIds: {
-      core: "#govtspending-core-assumptions",
+      health: "#govtspending-health-assumptions",
+      education: "#govtspending-education-assumptions",
       welfare: "#govtspending-welfare-assumptions",
       other: "#govtspending-other-assumptions",
+    },
+    // Same split as groupAssumptionsIds above, but for the plan's own
+    // sourced spending changes (drawPlanAssumptions) rather than the
+    // underlying expenditure dataset's methodology.
+    planAssumptionsIds: {
+      health: "#budget-plan-assumptions-health",
+      education: "#budget-plan-assumptions-education",
+      welfare: "#budget-plan-assumptions-welfare",
+      other: "#budget-plan-assumptions-other",
     },
     totalsBucket: "expenditures", perCategoryTotals: true,
     sliderLabel: "Rate", sliderDefaults: { unit: "$/capita", min: 0, max: 10000, step: 10, tickStep: 2000 },
@@ -889,8 +933,14 @@ function changeMultiComponentRate(category, tid, value) {
   calculateMultiComponentTax(category);
   drawTotal();
   // govtSpending writes into data.expenditures, not data.totals - drawTotal()
-  // alone wouldn't refresh the drawer's Expenditure bar.
-  if (multiComponentConfig[category].totalsBucket === "expenditures") drawExpenditure();
+  // alone wouldn't refresh the drawer's Expenditure bar. Editing a slider may
+  // also have just cloned planCurrent into a sourceless "Custom Plan" (see
+  // ensureCustomPlan/createNewIncomePlan), so the plan-sources box needs a
+  // refresh here too, not just on plan switch.
+  if (multiComponentConfig[category].totalsBucket === "expenditures") {
+    drawExpenditure();
+    drawPlanAssumptions(multiComponentConfig[category].planAssumptionsIds);
+  }
 }
 
 const calculateCorp = () => calculateMultiComponentTax("corp");
@@ -898,7 +948,10 @@ const calculateLand = () => calculateMultiComponentTax("land");
 const calculateOtherDirect = () => calculateMultiComponentTax("otherDirect");
 const calculateOtherIndirect = () => calculateMultiComponentTax("otherIndirect");
 const calculateNonTaxRevenue = () => calculateMultiComponentTax("nonTaxRevenue");
-const calculateGovtSpending = () => calculateMultiComponentTax("govtSpending");
+const calculateGovtSpending = () => {
+  calculateMultiComponentTax("govtSpending");
+  drawPlanAssumptions(multiComponentConfig.govtSpending.planAssumptionsIds);
+};
 
 function changeEvRucExemption(checked) {
   ensureCustomPlan();
@@ -967,7 +1020,7 @@ function changeBracketPercent(type, bracket, value) {
   // Called when a bracket's percentage is changed.
   ensureCustomPlan();
   const brackets = planCurrent[bracketConfig[type].bracketsField];
-  brackets[bracket].percent = clamp(parseFloat(value), bracketConfig[type].minPercent ?? 0, 100);
+  brackets[bracket].percent = clamp(parseFloat(value), bracketConfig[type].minPercent ?? -100, 100);
   calculateBracketTax(type);
   drawTotal();
 }
@@ -1065,7 +1118,7 @@ function switchTopTab(id) {
   d3.select(id).style("display", null);
 }
 
-// Expenses tab's own sub-tabs (Health & Education / Welfare & Benefits /
+// Expenses tab's own sub-tabs (Health / Education / Welfare & Benefits /
 // Other Spending) - same shape again, its own classes so switching an
 // Expenses sub-tab can't hide/show a Tax/Income sub-tab that happens to
 // share an id-less selector.
@@ -1086,11 +1139,11 @@ const TAX_CATEGORY_LABELS = {
   otherIndirect: "Indirect Tax (Other)", nonTaxRevenue: "Non-Tax Revenue",
 };
 
-// Display names for govtSpending's three sub-tab groups (see
+// Display names for govtSpending's sub-tab groups (see
 // multiComponentConfig.govtSpending's groupContainerIds), matching
 // index.html's Expenses sub-tab headers.
 const SPENDING_CATEGORY_LABELS = {
-  core: "Health & Education", welfare: "Welfare & Benefits", other: "Other Spending",
+  health: "Health", education: "Education", welfare: "Welfare & Benefits", other: "Other Spending",
 };
 
 // This stacks every category in data.totals, tax and non-tax alike (ACC
@@ -1098,7 +1151,6 @@ const SPENDING_CATEGORY_LABELS = {
 // though not all of it is technically "tax". See TODO.md.
 function drawTotal() {
   drawStackedBar(totalBar, data.totals, {
-    domainMax: 200000000,
     formatValue: (v) => `${(v / 1000000).toFixed(2)}B`,
     // data.totals' keys are already one-per-category (see the `data`
     // initializer) except "other", the otherIndirect residual - grouped into
@@ -1130,15 +1182,14 @@ function calculateExpenditure() {
 // data.totals, these keys are govtSpending's individual functional
 // categories (Health, Education, ...), not one-per-sub-tab - data.govtSpending
 // (the detail array calculateMultiComponentTax also writes) still carries
-// each one's `group` (core/welfare/other, i.e. which Expenses sub-tab it's
-// rendered under), so that's read back out here rather than duplicating the
-// grouping. UBI isn't a govtSpending dataset entry at all (see
-// calculateExpenditure) - its own control lives on the Income Tax tab, so it
-// categorizes there instead of falling into one of the three spending groups.
+// each one's `group` (health/education/welfare/other, i.e. which Expenses
+// sub-tab it's rendered under), so that's read back out here rather than
+// duplicating the grouping. UBI isn't a govtSpending dataset entry at all
+// (see calculateExpenditure) - its own control lives on the Income Tax tab,
+// so it categorizes there instead of falling into one of the spending groups.
 function drawExpenditure() {
   const groupOf = Object.fromEntries(data.govtSpending.map(e => [e.name, e.group]));
   drawStackedBar(expenditureBar, data.expenditures, {
-    domainMax: 200000000,
     formatValue: (v) => `${(v / 1000000).toFixed(2)}B`,
     categoryOf: (name) => groupOf[name] ?? "income",
     categoryLabel: (key) => SPENDING_CATEGORY_LABELS[key] ?? TAX_CATEGORY_LABELS[key] ?? key,
@@ -1292,7 +1343,7 @@ function formatDollars(value) {
 // binned-average approach (only meaningful against aggregate population
 // data) - a single person's tax is exact: sum each bracket's rate against
 // however much of their value falls inside it. valueK/brackets/floorK are
-// all in $K, matching tax_plans.json's bracket "top" convention.
+// all in $K, matching budget_plans.json's bracket "top" convention.
 function marginalBracketTax(valueK, brackets, floorK) {
   let tax = 0;
   let from = floorK;

@@ -148,7 +148,7 @@ not an oversight - see `main.js`'s comment above `drawTotal()`.
 
 `data/nontaxrevenue_2024.json`/`data/nontaxrevenue_2025.json` - unlike every
 other category, non-tax revenue has no policy rate to apply and doesn't vary
-by tax plan, so it skips `tax_plans.json` and `createNewIncomePlan()`
+by tax plan, so it skips `budget_plans.json` and `createNewIncomePlan()`
 entirely. Now sourced from Treasury's FSGNZ Notes 4-7, but several lines are
 proxies rather than exact matches to their label (FSGNZ fully consolidates
 SOEs, so there's no standalone "SOE dividends" line - "SOE dividends and
@@ -162,7 +162,7 @@ weren't available on a consistent basis across both years.
 
 All three now use real Treasury/ACC figures instead of the 0 placeholders
 they launched with - see each dataset file's `assumptions` field for exact
-line-item citations. `tax_plans.json` defaults FBT to the current 63.93%
+line-item citations. `budget_plans.json` defaults FBT to the current 63.93%
 single rate and every Other Indirect Tax/ACC component to its own current
 real rate (see "Other Indirect Tax and ACC Levies now use real rate units"
 above) for every plan, matching how undecided-party positions elsewhere
@@ -204,7 +204,7 @@ what was found: fixed a genuine data error, re-derived several taxable bases
 against newer real rates/sources, and added two new modelling features. Detail
 folded into the relevant JSON files' `assumptions`; summary here.
 
-**Fixed:** ACT's 2026 income tax brackets were simply wrong - `tax_plans.json`
+**Fixed:** ACT's 2026 income tax brackets were simply wrong - `budget_plans.json`
 had 30%/33%, but ACT's actual policy is 17.5% to $70K then 28% above (aligning
 the top rate with the 28% company rate). The cited link was also wrong (a 2022
 press release about the bright-line test, not this policy). Both corrected.
@@ -255,7 +255,7 @@ pure alcohol (was $37.836), ETS at ~$55.13/tonne (was ~$62), ACC levies at the
 2026/27 rates - Earner's Levy $1.75/$100 (was $1.39), Work Levy $0.69/$100
 (was $0.63), Motor Vehicle Levy $131.94/vehicle (was $113.94). Fuel excise
 (70.024c/L), RUC ($76/1,000km) and gaming duty (20%) unchanged, so unaffected.
-`tax_plans.json`'s shared default rates updated to match.
+`budget_plans.json`'s shared default rates updated to match.
 
 **Applied:** `land.json`'s urban/rural totals now start from Stats NZ's real
 published non-produced-assets ("land") total ($1.713 trillion at 31 Mar 2022,
@@ -376,7 +376,7 @@ spending using the same shape as `otherIndirect.json`/`nonTaxRevenue.json`'s
 real-rate components: each entry's `value` is a real taxable-equivalent
 *base* (population, or a benefit's recipient count - NOT a placeholder), and
 the actual dollar amount is base × rate, where the rate ($/capita/year or
-$/year/recipient) lives in `tax_plans.json`'s new `govtSpending` field per
+$/year/recipient) lives in `budget_plans.json`'s new `govtSpending` field per
 plan, same as e.g. `otherIndirect.tobaccoExcise`. `main.js` wires this in as
 a fourth `multiComponentConfig` entry (`govtSpending`) - identical shape to
 corp/land/otherDirect/otherIndirect/nonTaxRevenue, generalized to write into
@@ -400,12 +400,79 @@ Functional Classification" Core Crown table (FY2025 report p.160, FY2024
 report p.170 - both fetched directly and cross-read with `pdftotext`, not
 search-summarised). All 13 categories + the welfare total + Finance Costs
 reconcile to the published Core Crown total *to the dollar* for both years
-($138,998m FY2024, $141,675m FY2025) - no forced rounding needed. Every plan
-in `tax_plans.json` gets the identical current-law rate (no party has
-published a costed spending policy), the same "default to current law"
-convention already used for undecided tax positions (trust tax, land tax,
-etc.) - see TODO.md's "Spending settings" item, still open for
-party-specific costed differences.
+($138,998m FY2024, $141,675m FY2025) - no forced rounding needed. At launch,
+every plan in `budget_plans.json` got the identical current-law rate (no
+party's costed spending policy had been researched yet) - see "Costed
+spending changes per 2026 plan (Aug 2026)" below for where that stood.
+
+## Costed spending changes per 2026 plan (Aug 2026)
+
+Closed the gap above: researched each of the five live `2026 [Proposed - X]`
+plans' actual party platforms for quantified spending commitments, one
+bounded research pass per party (a handful of searches, not an exhaustive
+per-category dig - most parties only cost a few flagship items). Renamed
+`tax_plans.json` → `budget_plans.json` at the same time, since the file now
+covers spending policy as well as tax.
+
+**Found and applied**, converted into this app's $/capita or $/recipient
+units:
+
+- **Labour**: `health` +$104/capita (Medicard - free GP visits, prescriptions,
+  cervical screening, maternity scans - costed by Labour at $393.3m/yr rising
+  to ~$553m/yr by 2028/29) and `transport` +$12/capita (the $20/$10 weekly
+  fare cap, Labour's own $65m/yr costing, though the Taxpayers Union disputes
+  this at $141-182m).
+- **Greens**: `jobseeker` → $20,540/yr (the "Income Guarantee" $395/week
+  floor replacing Jobseeker Support - a stated floor, not necessarily above
+  this app's modelled recipient average) and `soleParent` → $31,980/yr (the
+  same policy's family top-up, one-child case). `supportedLiving` →
+  $39,100/yr is flagged lower-confidence - sourced only from secondary
+  commentary (not greens.org.nz directly) describing an ACC-replacement
+  disability agency guaranteeing 80% of minimum wage.
+- **ACT**: `coreGovernmentServices` → $1,340/capita, a rough ~10% estimate
+  (ACT published no dollar figure) for their pledge to collapse 43 government
+  departments into 19 and 28 ministers into 18, explicitly excluding
+  frontline nurses/teachers/police.
+- **NZ First**: `health` +$82/capita, `lawAndOrder` +$41/capita, `defence` →
+  $1,623/capita (their 2%-of-GDP-by-2030 target expressed as an absolute
+  rate, not an addition to baseline), and `economicIndustrial` +$63/capita
+  are light estimates annualized from quantified-but-uncosted pledges (a
+  $1.3bn Pharmac ask, 500 police + 1,000 corrections places, a $1bn
+  subsurface oil/gas survey). `otherBenefits` +$91/capita is the one
+  genuinely party-costed figure (the SuperGold rates-rebate, ~$480m total).
+- **TOP**: `jobseeker` → $19,400/yr (the flat Citizen's Income replacing
+  targeted Jobseeker Support) and `transport` +$70/capita (a rough estimate
+  of forgone fare revenue for TOP's uncosted permanent-free-public-transport
+  pledge). `nzSuper` stays at $27,988 - not unresearched, but confirmed held
+  flat by design (TOP guarantees no one on NZ Super receives less than now).
+
+**Everything else, for all five parties, is left at the FY2025 baseline** -
+no quantified 2026 commitment was found after a bounded search, which is
+itself the expected finding (most parties only cost a handful of flagship
+promises, not all 19 functional categories) rather than a research failure.
+The three historical income-tax snapshots (`2010 [National]`,
+`2021 [Labour]`, `2023 [Proposed - Greens]`) were deliberately left
+unresearched - they exist to compare past income-tax settings, not as
+spending platforms.
+
+**Recording sources - rethought for accessibility.** Per-category citations
+(up to 95 party×category combinations) would have been far too dense to be
+useful, in the JSON or in the UI. Instead each plan that got real research
+carries a small `sources` array - same `{date, url, name, assumptions}` shape
+already used by every dataset file, 1-2 entries per plan - with one prose
+paragraph per source stating which categories are sourced-costed vs.
+estimated vs. left at baseline, mentioning the actual figures (matching how
+dataset `assumptions` paragraphs already read). `main.js`'s
+`drawPlanAssumptions()` renders the current plan's `sources` into a single
+box near the top of the Expenses tab (`#budget-plan-assumptions`) - once per
+plan, not once per category. Considered and rejected splitting these into a
+separate sources file: every dataset file already co-locates values and
+sources in one JSON, and there's no build step in this project to keep two
+files in sync by hand, so `budget_plans.json` keeps its own. Editing any
+`govtSpending` slider clones the plan into a sourceless "Custom Plan" (same
+copy-on-write pattern as everything else - see `createNewIncomePlan()`), and
+the sources box correctly goes blank at that point, since a hand-edited plan
+no longer matches the party's actual sourced position.
 
 **Known gap, by design, not a bug:** the Expenses tab's total reads about
 $3.04bn under the official $141,675m Core Crown figure. This is Working for

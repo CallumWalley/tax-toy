@@ -9,7 +9,7 @@
 <div>
   <div class="top">
     <div id="dropdown-container">
-      <h2>Tax Plan:</h2>
+      <h2>Budget Plan:</h2>
     </div>
   </div>
   <div class="main">
@@ -176,8 +176,11 @@
       </div>
       <div id="top-tab-expenses" class="top-tab" style="display: none;">
         <div class="tab-container-buttons">
-          <button id="expense-tab-core-button" class="expense-tab-button active" onclick="switchExpenseTab('#expense-tab-core')">
-            <h3>Health &amp; Education</h3>
+          <button id="expense-tab-health-button" class="expense-tab-button active" onclick="switchExpenseTab('#expense-tab-health')">
+            <h3>Health</h3>
+          </button>
+          <button id="expense-tab-education-button" class="expense-tab-button" onclick="switchExpenseTab('#expense-tab-education')">
+            <h3>Education</h3>
           </button>
           <button id="expense-tab-welfare-button" class="expense-tab-button" onclick="switchExpenseTab('#expense-tab-welfare')">
             <h3>Welfare &amp; Benefits</h3>
@@ -187,17 +190,27 @@
           </button>
         </div>
         <div class="tab-container">
-          <div id="expense-tab-core" class="expense-tab">
-            <em>Health and education are Core Crown's two largest single functional-spending categories.</em>
+          <div id="expense-tab-health" class="expense-tab">
+            <em>Health is Core Crown's largest single functional-spending category.</em>
             <hr>
-            <div id="govtspending-core-assumptions" class="assumptions"></div>
-            <div id="govtspending-core-table-container">
+            <div id="govtspending-health-assumptions" class="assumptions"></div>
+            <div id="budget-plan-assumptions-health" class="assumptions"></div>
+            <div id="govtspending-health-table-container">
+            </div>
+          </div>
+          <div id="expense-tab-education" style="display: none;" class="expense-tab">
+            <em>Education is Core Crown's second-largest single functional-spending category.</em>
+            <hr>
+            <div id="govtspending-education-assumptions" class="assumptions"></div>
+            <div id="budget-plan-assumptions-education" class="assumptions"></div>
+            <div id="govtspending-education-table-container">
             </div>
           </div>
           <div id="expense-tab-welfare" style="display: none;" class="expense-tab">
             <em>NZ Superannuation, main benefits, and other welfare support, funded from general taxation.</em>
             <hr>
             <div id="govtspending-welfare-assumptions" class="assumptions"></div>
+            <div id="budget-plan-assumptions-welfare" class="assumptions"></div>
             <div id="govtspending-welfare-table-container">
             </div>
           </div>
@@ -205,6 +218,7 @@
             <em>Law and order, defence, transport, housing, and other Core Crown functional categories, plus Finance Costs (interest on Crown debt).</em>
             <hr>
             <div id="govtspending-other-assumptions" class="assumptions"></div>
+            <div id="budget-plan-assumptions-other" class="assumptions"></div>
             <div id="govtspending-other-table-container">
             </div>
           </div>
@@ -215,23 +229,23 @@
     <div class="right drawer" id="drawer">
       <div class="drawer-content">
         <div class="drawer-tab-container-buttons">
-          <button id="drawer-tab-total-button" class="drawer-tab-button active" onclick="switchDrawerTab('#drawer-tab-total')">
-            <h3>Total</h3>
+          <button id="drawer-tab-government-button" class="drawer-tab-button active" onclick="switchDrawerTab('#drawer-tab-government')">
+            <h3>Government</h3>
           </button>
           <button id="drawer-tab-people-button" class="drawer-tab-button" onclick="switchDrawerTab('#drawer-tab-people'); drawPerson()">
             <h3>People</h3>
           </button>
         </div>
         <div class="drawer-tab-panels">
-          <div id="drawer-tab-total" class="drawer-tab">
+          <div id="drawer-tab-government" class="drawer-tab">
             <div class="stacked-bar-columns">
               <div>
                 <h4>Revenue</h4>
-                <div id="total-container"></div>
+                <div id="government-income-container"></div>
               </div>
               <div>
                 <h4>Expenditure</h4>
-                <div id="expenditure-container"></div>
+                <div id="government-expenditure-container"></div>
               </div>
             </div>
           </div>

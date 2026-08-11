@@ -22,6 +22,9 @@
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
             "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026-08", "url": "", "name": "Historical income-tax snapshot - spending not researched", "assumptions": "This plan exists to compare 2010's income-tax settings, not as a spending platform - govtSpending is left at the FY2025 current-law baseline rather than researched, out of scope for the 2026-election budget research pass (see ASSUMPTIONS.md)." }
+            ],
             "ubi": 0
         },
         {
@@ -47,6 +50,9 @@
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
             "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026-08", "url": "", "name": "Historical income-tax snapshot - spending not researched", "assumptions": "This plan exists to compare 2021's income-tax settings, not as a spending platform - govtSpending is left at the FY2025 current-law baseline rather than researched, out of scope for the 2026-election budget research pass (see ASSUMPTIONS.md)." }
+            ],
             "ubi": 0
         },
         {
@@ -73,6 +79,9 @@
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
             "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026-08", "url": "", "name": "Historical income-tax snapshot - spending not researched", "assumptions": "This plan exists to compare the Greens' 2023 income-tax proposal, not as a spending platform - govtSpending is left at the FY2025 current-law baseline rather than researched, out of scope for the 2026-election budget research pass (see the live 2026 Greens plan below for that research, and ASSUMPTIONS.md)." }
+            ],
             "ubi": 0
         },
         {
@@ -98,6 +107,9 @@
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
             "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026-08", "url": "https://www.treasury.govt.nz/sites/default/files/2025-10/fsgnz-2025.pdf", "name": "Current-law FY2025 baseline - no change to research", "assumptions": "This plan defines the FY2025 current-law baseline itself, so govtSpending isn't a policy change to research against - see data/2025/expenditure.json's own sources for where these baseline rates come from." }
+            ],
             "ubi": 0
         },
         {
@@ -122,7 +134,11 @@
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
-            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "govtSpending": { "health": 5797, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1040, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026-06", "url": "https://www.labour.org.nz/election-policy-pages/free-doctor-s-visits-with-the-medicard/", "name": "Labour - Medicard/free doctor's visits policy", "groups": ["health"], "assumptions": "Labour's 2026 platform is only partially costed on spending. Medicard (free GP visits, prescriptions, cervical screening, maternity scans) is costed by the party at $393.3m in year one rising to ~$553m/yr by 2028/29 (funded via a proposed 28% targeted CGT) - divided by ~5.3m population, this adds ~$104/capita to the health rate (5693 -> 5797)." },
+                { "date": "2026-06-12", "url": "https://newsroom.co.nz/2026/06/12/labour-leads-with-its-chin-on-transport-cap-costs-critics-swing-wildly/", "name": "Newsroom - Labour's $20 transport fare cap costing scrutiny", "groups": ["other"], "assumptions": "Labour's own costing for its $20/$10 weekly public-transport fare cap is $65m/yr (funded from the National Land Transport Fund), adding ~$12/capita to the transport rate (1028 -> 1040) - the Taxpayers Union disputes this figure, estimating $141-182m instead. All other 17 categories (education, welfare, defence, housing, environment, etc.) have no quantified Labour spending commitment as of August 2026 and remain at the FY2025 baseline; a few (education, Future Fund, Apprenticeship Boost, SolarSaver) have directional rhetoric or uncosted announcements but no defensible per-capita figure." }
+            ],
             "ubi": 0
         },
         {
@@ -150,7 +166,11 @@
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
-            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 20540, "soleParent": 31980, "supportedLiving": 39100, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026-07", "url": "https://www.greens.org.nz/tax_system_for_all", "name": "Greens - A Tax System for All of Us", "groups": ["welfare"], "assumptions": "The Greens' flagship spending policy is the 'Income Guarantee': a $395/week floor for adults not in paid work, replacing Jobseeker Support (mapped to jobseeker: 21483 -> 20540, i.e. $395/wk x 52 - a stated floor, not necessarily higher than this app's modelled recipient average) plus family top-ups ($220/wk first child, $135/wk each additional, replacing Working for Families), applied to soleParent as a representative one-child case (28205 -> 31980)." },
+                { "date": "2025-07-14", "url": "https://www.scoop.co.nz/stories/PO2507/S00074/the-green-partys-universal-basic-illusion.htm", "name": "Scoop - secondary commentary on a Greens disability-support proposal", "groups": ["welfare"], "assumptions": "supportedLiving (25259 -> 39100) uses a low-confidence estimate - secondary commentary (not the Greens' own site) describes a disability/illness agency replacing ACC guaranteeing 80% of minimum wage (~$752/wk) - flagged as unconfirmed on greens.org.nz directly. All other 16 categories (health, education, nzSuper, housing, transport, defence, environment, etc.) had no quantified 2026 commitment located and remain at the FY2025 baseline." }
+            ],
             "ubi": 0
         },
         {
@@ -172,7 +192,11 @@
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
-            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1340, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026", "url": "https://www.act.org.nz/news/act-unveils-plan-for-radically-simpler-smaller-government", "name": "ACT - radically simpler, smaller government", "groups": ["other"], "assumptions": "ACT's only quantified 2026 spending-side commitment found is structural, not a dollar figure: collapsing 43 government departments into 19 and 28 ministers into 18, explicitly excluding frontline nurses/teachers/police. No cost was published by ACT itself, so this is mapped as a rough, clearly-flagged ~10% estimate against coreGovernmentServices (1485 -> 1340) rather than a real costing." },
+                { "date": "2026-06-28", "url": "https://www.act.org.nz/news/act-announces-policy-to-make-benefits-a-hand-up-not-a-way-of-life", "name": "ACT - benefits a hand-up, not a way of life", "groups": ["welfare"], "assumptions": "ACT's June 2026 welfare package (electronic income-management cards for long-term Jobseeker recipients, doctor-certified health benefits) is real and sourced but changes eligibility/compliance rather than the per-recipient dollar rate this model tracks, so jobseeker/soleParent/supportedLiving are left at baseline rather than force-fit. All other 17 categories, including defence, health, education and law and order, returned no ACT-specific costed or clearly-directional 2026 figure and are left at the FY2025 baseline." }
+            ],
             "ubi": 0
         },
         {
@@ -197,7 +221,11 @@
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
-            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "govtSpending": { "health": 5775, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 290, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1306, "defence": 1623, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 723, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026", "url": "https://www.nzfirst.nz/improving-the-lives-of-our-seniors", "name": "NZ First - Improving the Lives of Our Seniors", "groups": ["health", "welfare", "other"], "assumptions": "NZ First's 2026 spending platform is thin, the same sparseness already found for their income-tax position (see ASSUMPTIONS.md). Only otherBenefits carries a party-stated total cost: the SuperGold rates-rebate (up to $1,600/yr/recipient, ~$480m total) adds ~$91/capita (199 -> 290). health (5693 -> 5775), lawAndOrder (1265 -> 1306), defence (614 -> 1623, the terminal 2%-of-GDP-by-2030 target expressed as an absolute rate, faster than the coalition's 2032/33 path) and economicIndustrial (660 -> 723) are light estimates built from quantified-but-uncosted pledges (a $1.3bn Pharmac ask, 500 new police plus 1,000 corrections places, a $1bn subsurface oil/gas survey), annualized using standard unit-cost or GDP-share assumptions since NZ First itself gives no annual figure." },
+                { "date": "2023-09", "url": "https://www.nzfirst.nz/policy-announcements-law-order-justice-courts-corrections", "name": "NZ First - Law & Order / Justice, Courts & Corrections policy", "groups": ["other"], "assumptions": "All other 14 categories have no NZ First-specific position found and remain at the FY2025 baseline." }
+            ],
             "ubi": 0
         },
         {
@@ -220,7 +248,11 @@
             "otherIndirect": { "tobaccoExcise": 1309.71, "alcoholExcise": 38.999, "roadUserCharges": 76, "gamingDuty": 20, "fuelExcise": 70.024, "ets": 55.13, "wasteLevy": 70, "nitrateTax": 0 },
             "nonTaxRevenue": { "earnerLevy": 1.75, "workLevy": 0.69, "mvLevy": 131.94 },
             "evRucExempt": false,
-            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 21483, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1028, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "govtSpending": { "health": 5693, "education": 3924, "nzSuper": 27988, "jobseeker": 19400, "soleParent": 28205, "supportedLiving": 25259, "accommodation": 419, "otherBenefits": 199, "welfareResidual": 1580, "coreGovernmentServices": 1485, "lawAndOrder": 1265, "defence": 614, "transport": 1100, "housingCommunity": 404, "economicIndustrial": 660, "primaryServices": 187, "heritageCultureRecreation": 274, "environmentalProtection": 453, "gsfPensions": 12.21, "otherExpenses": 23.85 },
+            "sources": [
+                { "date": "2026-08", "url": "https://www.opportunity.org.nz/tax-reset", "name": "TOP - Tax Reset policy page", "groups": ["welfare"], "assumptions": "TOP's 2026 platform centres on a fully-funded 'Tax Reset': a universal Citizen's Income of $19,400/yr ($370/wk) funded by a 1.75%/0.5% urban/rural land value tax plus a claimed $1.7bn in unallocated admin savings (not attributed to any specific category, so not applied here). jobseeker (21483 -> 19400) is mapped to the flat Citizen's Income replacing targeted Jobseeker Support; nzSuper (27988, unchanged) is explicitly guaranteed by TOP not to fall below current levels, so held flat by design rather than left unresearched." },
+                { "date": "2026", "url": "https://www.thepost.co.nz/politics/361000376/election-2026-opportunity-party-reveals-policies-land-tax-universal-basic-income-and-kiwisaver", "name": "The Post - Opportunity Party reveals Tax Reset policies", "groups": ["other"], "assumptions": "TOP has also committed to permanent free public transport nationwide but explicitly has not costed it; transport (1028 -> 1100) uses a rough, clearly-flagged estimate (~$70/capita from national fare-revenue forgone) rather than an official TOP figure. Sole Parent Support, Supported Living, Accommodation Assistance and other benefits are said to continue as 'top-ups' with no published figures, so remain at baseline, as do all other 14 categories (health, education, defence, law and order, etc.)." }
+            ],
             "ubi": 0
         }
     ]

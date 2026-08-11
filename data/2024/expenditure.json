@@ -62,7 +62,7 @@
             "description": "Core Crown health functional expenses.",
             "rateUnit": "$/capita/year",
             "rateDivisor": 1000,
-            "group": "core"
+            "group": "health"
         },
         {
             "components": [
@@ -77,7 +77,7 @@
             "description": "Core Crown education functional expenses.",
             "rateUnit": "$/capita/year",
             "rateDivisor": 1000,
-            "group": "core"
+            "group": "education"
         },
         {
             "components": [

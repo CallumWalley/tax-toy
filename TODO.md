@@ -48,11 +48,16 @@ Done: an "Expenses" top-level tab now shows government spending by
 functional category (health, education, benefits, defence, etc.), each with
 its own $/capita or $/recipient rate slider, sourced from Treasury's FSGNZ
 Core Crown functional-classification tables - see ASSUMPTIONS.md's "New:
-Expenses tab" entry. Still open: every plan currently defaults to the same
-current-law rate, since no party has published a costed spending policy -
-if/when a party proposes a specific spending change (e.g. a costed benefit
-increase or defence spend boost), that plan's `govtSpending` field is where
-it'd go.
+Expenses tab" entry.
+
+Done: each of the five live `2026 [Proposed - X]` plans in `budget_plans.json`
+(renamed from `tax_plans.json`, since it now covers spending policy too) now
+carries its party's real costed/estimated spending changes, where any exist -
+see ASSUMPTIONS.md's "Costed spending changes per 2026 plan (Aug 2026)"
+entry. Still open: most categories for most parties had no findable 2026
+commitment and stay at baseline - revisit if/when a party publishes a costed
+change for one of those (e.g. National's own 2026 Budget, once its specific
+line items are confirmed beyond the current FY2025 baseline).
 
 ## Other tax related settings
 
