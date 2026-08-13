@@ -1511,12 +1511,6 @@ function changePersonField(field, value) {
   drawPersonFieldsTable();
 }
 
-function addCustomPerson() {
-  createNewCustomPerson();
-  drawPerson();
-  drawPersonFieldsTable();
-}
-
 // Draw person dropdown - same shape as the Tax Plan selector above.
 const drawPersonDropdown = createIndexedDropdown("#person-dropdown-container", "person-dropdown", people, () => personCurrent, (person) => {
   personCurrent = person;
@@ -1560,5 +1554,4 @@ window.switchDrawerTab = switchDrawerTab;
 window.switchTopTab = switchTopTab;
 window.switchExpenseTab = switchExpenseTab;
 window.changePersonField = changePersonField;
-window.addCustomPerson = addCustomPerson;
 window.drawPerson = drawPerson;
